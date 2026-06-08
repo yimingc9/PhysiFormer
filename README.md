@@ -16,8 +16,12 @@
 </p>
 
 <p align="center">
-  <video src="assets/physformer_teaser.mp4" width="75%" autoplay loop muted playsinline controls>
-    Your browser does not support the video tag.
+  <video src="https://github.com/user-attachments/assets/df075a8b-a24a-46e5-b563-7f14e1b73d86"
+         width="75%"
+         controls
+         muted
+         loop
+         playsinline>
   </video>
 </p>
 
