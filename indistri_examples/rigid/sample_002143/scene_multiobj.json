@@ -1,0 +1,54 @@
+{
+  "out_layout": "local_sample_dir",
+  "out_sample_rel_dir": "indistri_examples/rigid/sample_002143",
+  "cond_rel_sample_dir": "indistri_examples/rigid/sample_002143",
+  "first_frame_obj": "indistri_examples/rigid/sample_002143/meshes/combined_frame_000.obj",
+  "metadata": "indistri_examples/rigid/sample_002143/metadata.json",
+  "mesh_vertex_count_json": "src/mesh_primitives/vertex_counts_multiobj_all.json",
+  "fps_precomputed_path": "",
+  "objects": [
+    {
+      "obj_id": 0,
+      "mesh_name": "tetrahedron_4v",
+      "mesh_path": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "num_vertices": 4,
+      "vertex_slice": [
+        0,
+        4
+      ]
+    },
+    {
+      "obj_id": 1,
+      "mesh_name": "4_bipyramid_6v",
+      "mesh_path": "indistri_examples/meshes/4_bipyramid_6v.obj",
+      "num_vertices": 6,
+      "vertex_slice": [
+        4,
+        10
+      ]
+    },
+    {
+      "obj_id": 2,
+      "mesh_name": "prism_6_12v",
+      "mesh_path": "indistri_examples/meshes/prism_6_12v.obj",
+      "num_vertices": 12,
+      "vertex_slice": [
+        10,
+        22
+      ]
+    },
+    {
+      "obj_id": 3,
+      "mesh_name": "dodecahedron_20v",
+      "mesh_path": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "num_vertices": 20,
+      "vertex_slice": [
+        22,
+        42
+      ]
+    }
+  ],
+  "infer_num_frames": 49,
+  "infer_num_vertices": 42,
+  "pad_object_id": 10
+}

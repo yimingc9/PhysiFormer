@@ -1,0 +1,101 @@
+{
+  "mode": "dataset_pbd_air_mixed_1to5",
+  "category": "4_obj",
+  "sample_index": 121,
+  "num_objects": 4,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "antiprism_43_86v",
+      "mesh_source": "indistri_examples/meshes/antiprism_43_86v.obj",
+      "mesh_used": "indistri_examples/meshes/antiprism_43_86v.obj",
+      "scale": 0.14257791385742774,
+      "vertex_count": 86,
+      "vertex_range": [
+        0,
+        86
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "prism_9_18v",
+      "mesh_source": "indistri_examples/meshes/prism_9_18v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_9_18v.obj",
+      "scale": 0.13309316928858747,
+      "vertex_count": 18,
+      "vertex_range": [
+        86,
+        104
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "prism_3_6v",
+      "mesh_source": "indistri_examples/meshes/prism_3_6v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_3_6v.obj",
+      "scale": 0.14153095200676263,
+      "vertex_count": 6,
+      "vertex_range": [
+        104,
+        110
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "dodecahedron_20v",
+      "mesh_source": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "mesh_used": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "scale": 0.12135142647279146,
+      "vertex_count": 20,
+      "vertex_range": [
+        110,
+        130
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    }
+  ]
+}

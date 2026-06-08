@@ -1,0 +1,224 @@
+{
+  "mode": "interactive_234obj_velocity_angular_variants",
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "ceiling": true,
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "containment_tol": 0.01,
+  "pose_jitter_deg": 2.0,
+  "random_yaw": false,
+  "random_initial_angular_velocity": true,
+  "angular_speed_limits": [
+    0.5,
+    4.0
+  ],
+  "max_sample_attempts": 64,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "substeps": 4,
+  "total_time_s": 1.0208333333333333,
+  "render_res": [
+    600,
+    540
+  ],
+  "viz": "mp4",
+  "gif_ms_per_frame": 40,
+  "mp4_fps": 25.0,
+  "surface_smooth": false,
+  "surface_double_sided": true,
+  "surface_vis_mode": "visual",
+  "draw_bounds": true,
+  "fix_winding": false,
+  "write_mesh_assets": false,
+  "setup_ratios": [
+    1.0,
+    0.0,
+    0.0
+  ],
+  "setup_ratios_3obj": [
+    0.4000000000000001,
+    0.30000000000000004,
+    0.20000000000000004,
+    0.10000000000000002
+  ],
+  "setup_ratios_4obj": [
+    0.35,
+    0.25,
+    0.2,
+    0.1,
+    0.1
+  ],
+  "setup_ratios_5obj": [
+    0.35,
+    0.25,
+    0.2,
+    0.1,
+    0.05,
+    0.05
+  ],
+  "seed_base": 0,
+  "seed_scheme": "blake2b64(base_seed, mode/category, sample_index, \u2026)",
+  "distributed": {
+    "rank": 0,
+    "world_size": 1,
+    "job_id": 0,
+    "num_jobs": 1,
+    "effective_rank": 0,
+    "effective_world": 1
+  },
+  "category": "2_obj",
+  "num_objects": 2,
+  "sample_index": 5,
+  "sample_seed": 6846367306107641108,
+  "sample_attempt": 2,
+  "setup": "both_move",
+  "source_sample_index": 2,
+  "aux": {
+    "variant_index": 0,
+    "attempt_idx": 2,
+    "velocity_policy": "preserve source speed magnitudes; rotate 3D directions deterministically per sample",
+    "angular_velocity_policy": "deterministic nonzero axis-angle velocities within angular_speed_limits",
+    "velocity_variants": [
+      {
+        "object_index": 0,
+        "speed": 1.4541694964999423,
+        "direction": [
+          0.6515326514337999,
+          0.3964012914598079,
+          0.6468162182912849
+        ],
+        "velocity": [
+          0.9474389076887613,
+          0.5764346664140357,
+          0.9405804144806346
+        ]
+      },
+      {
+        "object_index": 1,
+        "speed": 1.4701511030203835,
+        "direction": [
+          -0.4469017974298334,
+          -0.7103109977059712,
+          0.5438171291821656
+        ],
+        "velocity": [
+          -0.6570131704332616,
+          -1.0442644967649426,
+          0.7994933523085392
+        ]
+      }
+    ],
+    "angular_velocity_variants": [
+      {
+        "object_index": 0,
+        "angular_speed": 0.44736041324643766,
+        "axis": [
+          0.7115472126038129,
+          0.48359400737151914,
+          -0.5097424842703414
+        ],
+        "angular_velocity": [
+          0.3183180550747926,
+          0.21634081498122365,
+          -0.22803860841244572
+        ]
+      },
+      {
+        "object_index": 1,
+        "angular_speed": 0.4520068288694615,
+        "axis": [
+          0.27193767232549193,
+          0.88980010223846,
+          0.36647739415497316
+        ],
+        "angular_velocity": [
+          0.12291768491798832,
+          0.4021957225405289,
+          0.16565028478433313
+        ]
+      }
+    ]
+  },
+  "objects": [
+    {
+      "mesh_source": "ood_examples/meshes/cow_178v.obj",
+      "mesh_used": "ood_examples/meshes/cow_178v.obj",
+      "boundary_edges": 0,
+      "scale": 0.15615417895943376,
+      "target_radius": 0.42,
+      "init_pos": [
+        0.29479375542779007,
+        -0.3561126757143238,
+        -0.2128629831427579
+      ],
+      "init_quat_xyzw": [
+        0.017374176823010207,
+        0.012950978838458822,
+        -0.00022506545250595232,
+        0.9997651521594413
+      ],
+      "init_vel": [
+        0.9474389076887613,
+        0.5764346664140357,
+        0.9405804144806346
+      ],
+      "init_ang_vel": [
+        0.3183180550747926,
+        0.21634081498122365,
+        -0.22803860841244572
+      ],
+      "name": "cow",
+      "mesh_name": "cow_178v",
+      "vertex_count": 178,
+      "vertex_range": [
+        0,
+        178
+      ]
+    },
+    {
+      "mesh_source": "ood_examples/meshes/horse_178v.obj",
+      "mesh_used": "ood_examples/meshes/horse_178v.obj",
+      "boundary_edges": 0,
+      "scale": 0.12369520781209123,
+      "target_radius": 0.3827244806072461,
+      "init_pos": [
+        -0.34136221468273253,
+        0.4138723428703685,
+        -0.2128629831427579
+      ],
+      "init_quat_xyzw": [
+        -0.008415468949649738,
+        -0.015552813288005951,
+        -0.00013090468763725277,
+        0.9998436241458705
+      ],
+      "init_vel": [
+        -0.6570131704332616,
+        -1.0442644967649426,
+        0.7994933523085392
+      ],
+      "init_ang_vel": [
+        0.12291768491798832,
+        0.4021957225405289,
+        0.16565028478433313
+      ],
+      "name": "horse",
+      "mesh_name": "horse_178v",
+      "vertex_count": 178,
+      "vertex_range": [
+        178,
+        356
+      ]
+    }
+  ]
+}

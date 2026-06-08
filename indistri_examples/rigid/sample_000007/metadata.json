@@ -1,0 +1,63 @@
+{
+  "mode": "nonconvex_ground_interlock_2obj_ref_generate_rigid_motion",
+  "category": "2_obj",
+  "sample_index": 7,
+  "num_objects": 2,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.0,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "l_bracket_prism_12v",
+      "mesh_source": "indistri_examples/meshes/l_bracket_prism_12v.obj",
+      "mesh_used": "indistri_examples/meshes/l_bracket_prism_12v.obj",
+      "scale": 0.2646702951578071,
+      "vertex_count": 12,
+      "vertex_range": [
+        0,
+        12
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "star_prism_9tip_36v",
+      "mesh_source": "indistri_examples/meshes/star_prism_9tip_36v.obj",
+      "mesh_used": "indistri_examples/meshes/star_prism_9tip_36v.obj",
+      "scale": 0.22283440577660094,
+      "vertex_count": 36,
+      "vertex_range": [
+        12,
+        48
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    }
+  ]
+}

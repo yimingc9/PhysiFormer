@@ -1,0 +1,125 @@
+{
+  "mode": "interactive_234obj_velocity_angular_variants",
+  "category": "3_obj",
+  "sample_index": 2,
+  "num_objects": 3,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "ceiling": true,
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "first_frame_obj": "meshes/combined_frame_000.obj",
+  "first_frame_vertex_velocity": "vertex_velocities/combined_frame_000.npy",
+  "objects": [
+    {
+      "name": "teapot",
+      "mesh_name": "teapot_100v",
+      "mesh_source": "ood_examples/meshes/teapot_100v.obj",
+      "mesh_used": "ood_examples/meshes/teapot_100v.obj",
+      "vertex_count": 100,
+      "vertex_range": [
+        0,
+        100
+      ],
+      "scale": 0.3758463323151188,
+      "init_pos": [
+        0.07575112437605437,
+        -0.4796116189409921,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        0.006206187145543768,
+        0.0028792705576759603,
+        0.8897109983120872,
+        -0.456472926387403
+      ],
+      "init_vel": [
+        -0.16348438948176577,
+        1.5727473437925665,
+        0.4972711487234267
+      ],
+      "init_ang_vel": [
+        2.1861160855990858,
+        0.050565984784432916,
+        -0.16574187541822366
+      ]
+    },
+    {
+      "name": "fish",
+      "mesh_name": "fish_100v",
+      "mesh_source": "ood_examples/meshes/fish_100v.obj",
+      "mesh_used": "ood_examples/meshes/fish_100v.obj",
+      "vertex_count": 100,
+      "vertex_range": [
+        100,
+        200
+      ],
+      "scale": 0.37678753224691536,
+      "init_pos": [
+        0.4383944211732984,
+        0.36179064681323986,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        -0.015614378669630212,
+        -0.00786436510529353,
+        0.846709042786514,
+        0.5317688781828035
+      ],
+      "init_vel": [
+        -1.2862148338898287,
+        -0.9197351543202853,
+        0.4972711487234267
+      ],
+      "init_ang_vel": [
+        1.3655352298195418,
+        1.2172822735512838,
+        1.0319426844287871
+      ]
+    },
+    {
+      "name": "bunny",
+      "mesh_name": "bunny_100v",
+      "mesh_source": "ood_examples/meshes/bunny_100v.obj",
+      "mesh_used": "ood_examples/meshes/bunny_100v.obj",
+      "vertex_count": 100,
+      "vertex_range": [
+        200,
+        300
+      ],
+      "scale": 0.34979678599135444,
+      "init_pos": [
+        -0.4716029641702743,
+        0.2551478214746769,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        0.009725295871159013,
+        0.0015443103936445698,
+        0.9999051062120249,
+        -0.009633913885124029
+      ],
+      "init_vel": [
+        1.4619135994795043,
+        -0.6025528861997742,
+        0.4972711487234267
+      ],
+      "init_ang_vel": [
+        0.16516179533445927,
+        1.8138144309177617,
+        0.9442391536343865
+      ]
+    }
+  ]
+}

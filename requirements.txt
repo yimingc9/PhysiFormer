@@ -1,0 +1,17 @@
+# Hugging Face Spaces installs this file directly. For local installs, it is still fine to install
+# PyTorch explicitly first with the CUDA wheel index; pip will then treat it as already satisfied.
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.5.1
+torchvision==0.20.1
+
+# Core runtime dependencies for the copied inference/render code.
+gradio>=4
+huggingface_hub>=0.30
+spaces
+numpy==1.24.4
+matplotlib==3.10.8
+tqdm==4.67.3
+
+# Needed for --save-gif, --save-mp4, and render-existing commands.
+imageio==2.37.3
+imageio-ffmpeg==0.6.0

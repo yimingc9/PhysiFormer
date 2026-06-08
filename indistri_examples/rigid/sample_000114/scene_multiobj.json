@@ -1,0 +1,64 @@
+{
+  "out_layout": "local_sample_dir",
+  "out_sample_rel_dir": "indistri_examples/rigid/sample_000114",
+  "cond_rel_sample_dir": "indistri_examples/rigid/sample_000114",
+  "first_frame_obj": "indistri_examples/rigid/sample_000114/meshes/combined_frame_000.obj",
+  "metadata": "indistri_examples/rigid/sample_000114/metadata.json",
+  "mesh_vertex_count_json": "src/mesh_primitives/vertex_counts_multiobj_all.json",
+  "fps_precomputed_path": "",
+  "objects": [
+    {
+      "obj_id": 0,
+      "mesh_name": "cube_8v",
+      "mesh_path": "indistri_examples/meshes/cube_8v.obj",
+      "num_vertices": 8,
+      "vertex_slice": [
+        0,
+        8
+      ]
+    },
+    {
+      "obj_id": 1,
+      "mesh_name": "prism_9_18v",
+      "mesh_path": "indistri_examples/meshes/prism_9_18v.obj",
+      "num_vertices": 18,
+      "vertex_slice": [
+        8,
+        26
+      ]
+    },
+    {
+      "obj_id": 2,
+      "mesh_name": "prism_6_12v",
+      "mesh_path": "indistri_examples/meshes/prism_6_12v.obj",
+      "num_vertices": 12,
+      "vertex_slice": [
+        26,
+        38
+      ]
+    },
+    {
+      "obj_id": 3,
+      "mesh_name": "prism_8_16v",
+      "mesh_path": "indistri_examples/meshes/prism_8_16v.obj",
+      "num_vertices": 16,
+      "vertex_slice": [
+        38,
+        54
+      ]
+    },
+    {
+      "obj_id": 4,
+      "mesh_name": "l_bracket_prism_12v",
+      "mesh_path": "indistri_examples/meshes/l_bracket_prism_12v.obj",
+      "num_vertices": 12,
+      "vertex_slice": [
+        54,
+        66
+      ]
+    }
+  ],
+  "infer_num_frames": 49,
+  "infer_num_vertices": 66,
+  "pad_object_id": 10
+}

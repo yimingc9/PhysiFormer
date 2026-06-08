@@ -1,0 +1,84 @@
+{
+  "out_layout": "local_sample_dir",
+  "out_sample_rel_dir": "indistri_examples/rigid/sample_001874",
+  "cond_rel_sample_dir": "indistri_examples/rigid/sample_001874",
+  "first_frame_obj": "indistri_examples/rigid/sample_001874/meshes/combined_frame_000.obj",
+  "metadata": "indistri_examples/rigid/sample_001874/metadata.json",
+  "mesh_vertex_count_json": "src/mesh_primitives/vertex_counts_multiobj_all.json",
+  "fps_precomputed_path": "",
+  "objects": [
+    {
+      "obj_id": 0,
+      "mesh_name": "tetrahedron_4v",
+      "mesh_path": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "num_vertices": 4,
+      "vertex_slice": [
+        0,
+        4
+      ]
+    },
+    {
+      "obj_id": 1,
+      "mesh_name": "plus_cross_prism_24v",
+      "mesh_path": "indistri_examples/meshes/plus_cross_prism_24v.obj",
+      "num_vertices": 24,
+      "vertex_slice": [
+        4,
+        28
+      ]
+    },
+    {
+      "obj_id": 2,
+      "mesh_name": "rhombic_dodecahedron_14v",
+      "mesh_path": "indistri_examples/meshes/rhombic_dodecahedron_14v.obj",
+      "num_vertices": 14,
+      "vertex_slice": [
+        28,
+        42
+      ]
+    },
+    {
+      "obj_id": 3,
+      "mesh_name": "prism_4_8v",
+      "mesh_path": "indistri_examples/meshes/prism_4_8v.obj",
+      "num_vertices": 8,
+      "vertex_slice": [
+        42,
+        50
+      ]
+    },
+    {
+      "obj_id": 4,
+      "mesh_name": "truncated_cube_24v",
+      "mesh_path": "indistri_examples/meshes/truncated_cube_24v.obj",
+      "num_vertices": 24,
+      "vertex_slice": [
+        50,
+        74
+      ]
+    },
+    {
+      "obj_id": 5,
+      "mesh_name": "5_bipyramid_7v",
+      "mesh_path": "indistri_examples/meshes/5_bipyramid_7v.obj",
+      "num_vertices": 7,
+      "vertex_slice": [
+        74,
+        81
+      ]
+    },
+    {
+      "obj_id": 6,
+      "mesh_name": "pentagonal_pyramid_6v",
+      "mesh_path": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "num_vertices": 6,
+      "vertex_slice": [
+        81,
+        87
+      ]
+    }
+  ],
+  "infer_num_frames": 49,
+  "infer_num_vertices": 87,
+  "pad_object_id": 10
+}

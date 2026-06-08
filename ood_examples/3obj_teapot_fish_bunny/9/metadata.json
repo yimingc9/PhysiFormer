@@ -1,0 +1,299 @@
+{
+  "mode": "interactive_234obj_velocity_angular_variants",
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "ceiling": true,
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "containment_tol": 0.08,
+  "pose_jitter_deg": 2.0,
+  "random_yaw": true,
+  "random_initial_angular_velocity": true,
+  "angular_speed_limits": [
+    2.0,
+    8.0
+  ],
+  "max_sample_attempts": 20,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "substeps": 4,
+  "total_time_s": 1.0208333333333333,
+  "render_res": [
+    600,
+    540
+  ],
+  "viz": "mp4",
+  "gif_ms_per_frame": 40,
+  "mp4_fps": 25.0,
+  "surface_smooth": false,
+  "surface_double_sided": true,
+  "surface_vis_mode": "visual",
+  "draw_bounds": true,
+  "fix_winding": false,
+  "write_mesh_assets": true,
+  "setup_ratios": [
+    0.5,
+    0.4,
+    0.1
+  ],
+  "setup_ratios_3obj": [
+    0.4000000000000001,
+    0.30000000000000004,
+    0.20000000000000004,
+    0.10000000000000002
+  ],
+  "setup_ratios_4obj": [
+    0.35,
+    0.25,
+    0.2,
+    0.1,
+    0.1
+  ],
+  "setup_ratios_5obj": [
+    0.35,
+    0.25,
+    0.2,
+    0.1,
+    0.05,
+    0.05
+  ],
+  "seed_base": 20260506,
+  "seed_scheme": "blake2b64(base_seed, mode/category, sample_index, \u2026)",
+  "distributed": {
+    "rank": 0,
+    "world_size": 1,
+    "job_id": 0,
+    "num_jobs": 1,
+    "effective_rank": 0,
+    "effective_world": 1
+  },
+  "category": "3_obj",
+  "num_objects": 3,
+  "sample_index": 9,
+  "sample_seed": 6739598954514416449,
+  "sample_attempt": 0,
+  "setup": "both_move",
+  "source_sample_index": 1,
+  "force_upward_velocity": false,
+  "velocity_speed_scale": 1.35,
+  "velocity_mode": "center_collision",
+  "z_ratio_override": 0.3,
+  "aux": {
+    "variant_index": 11,
+    "attempt_idx": 0,
+    "force_upward_velocity": false,
+    "velocity_speed_scale": 1.35,
+    "z_ratio_override": 0.3,
+    "velocity_mode": "center_collision",
+    "collision_center_xy": [
+      0.01418086045969282,
+      0.0457756164489749
+    ],
+    "velocity_policy": "preserve source speed magnitudes, optionally scale them, and rotate 3D directions deterministically per sample",
+    "angular_velocity_policy": "deterministic nonzero axis-angle velocities within angular_speed_limits",
+    "velocity_variants": [
+      {
+        "object_index": 0,
+        "speed": 1.6575704957447557,
+        "direction": [
+          -0.0743322803664792,
+          0.9510387542553244,
+          -0.3
+        ],
+        "velocity": [
+          -0.12321099481690309,
+          1.576413779363473,
+          -0.4972711487234267
+        ]
+      },
+      {
+        "object_index": 1,
+        "speed": 1.6575704957447557,
+        "direction": [
+          -0.7727504431727312,
+          -0.5593359925629205,
+          -0.3
+        ],
+        "velocity": [
+          -1.2808883351768037,
+          -0.9271388384804052,
+          -0.4972711487234267
+        ]
+      },
+      {
+        "object_index": 2,
+        "speed": 1.6575704957447557,
+        "direction": [
+          0.8771681838621436,
+          -0.3749346305957726,
+          -0.3
+        ],
+        "velocity": [
+          1.4539681013759003,
+          -0.6214805815085116,
+          -0.4972711487234267
+        ]
+      }
+    ],
+    "angular_velocity_variants": [
+      {
+        "object_index": 0,
+        "angular_speed": 2.940337913650169,
+        "axis": [
+          0.8366071242800129,
+          0.5473818108965292,
+          -0.021486570307131858
+        ],
+        "angular_velocity": [
+          2.459907646350361,
+          1.609487491821552,
+          -0.06317777730836976
+        ]
+      },
+      {
+        "object_index": 1,
+        "angular_speed": 3.0219706851938155,
+        "axis": [
+          0.28006525066368615,
+          0.9581817469719933,
+          0.05874687345200347
+        ],
+        "angular_velocity": [
+          0.8463489774471172,
+          2.8955971504371614,
+          0.17753132941874525
+        ]
+      },
+      {
+        "object_index": 2,
+        "angular_speed": 2.727702118310649,
+        "axis": [
+          -0.5227668454647825,
+          0.8500531265409632,
+          -0.0642223274316136
+        ],
+        "angular_velocity": [
+          -1.425952231756863,
+          2.3186917139423757,
+          -0.17517937857805252
+        ]
+      }
+    ]
+  },
+  "objects": [
+    {
+      "mesh_source": "ood_examples/meshes/teapot_100v.obj",
+      "mesh_used": "ood_examples/meshes/teapot_100v.obj",
+      "boundary_edges": 32,
+      "scale": 0.3758463323151188,
+      "target_radius": 0.3669131923777058,
+      "init_pos": [
+        0.07575112437605437,
+        -0.4796116189409921,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        0.006206187145543768,
+        0.0028792705576759603,
+        0.8897109983120872,
+        -0.456472926387403
+      ],
+      "init_vel": [
+        -0.12321099481690309,
+        1.576413779363473,
+        -0.4972711487234267
+      ],
+      "init_ang_vel": [
+        2.459907646350361,
+        1.609487491821552,
+        -0.06317777730836976
+      ],
+      "name": "teapot",
+      "mesh_name": "teapot_100v",
+      "vertex_count": 100,
+      "vertex_range": [
+        0,
+        100
+      ]
+    },
+    {
+      "mesh_source": "ood_examples/meshes/fish_100v.obj",
+      "mesh_used": "ood_examples/meshes/fish_100v.obj",
+      "boundary_edges": 0,
+      "scale": 0.37678753224691536,
+      "target_radius": 0.37153767568226836,
+      "init_pos": [
+        0.4383944211732984,
+        0.36179064681323986,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        -0.015614378669630212,
+        -0.00786436510529353,
+        0.846709042786514,
+        0.5317688781828035
+      ],
+      "init_vel": [
+        -1.2808883351768037,
+        -0.9271388384804052,
+        -0.4972711487234267
+      ],
+      "init_ang_vel": [
+        0.8463489774471172,
+        2.8955971504371614,
+        0.17753132941874525
+      ],
+      "name": "fish",
+      "mesh_name": "fish_100v",
+      "vertex_count": 100,
+      "vertex_range": [
+        100,
+        200
+      ]
+    },
+    {
+      "mesh_source": "ood_examples/meshes/bunny_100v.obj",
+      "mesh_used": "ood_examples/meshes/bunny_100v.obj",
+      "boundary_edges": 0,
+      "scale": 0.34979678599135444,
+      "target_radius": 0.3705138613326914,
+      "init_pos": [
+        -0.4716029641702743,
+        0.2551478214746769,
+        -0.23308059744482854
+      ],
+      "init_quat_xyzw": [
+        0.009725295871159013,
+        0.0015443103936445698,
+        0.9999051062120249,
+        -0.009633913885124029
+      ],
+      "init_vel": [
+        1.4539681013759003,
+        -0.6214805815085116,
+        -0.4972711487234267
+      ],
+      "init_ang_vel": [
+        -1.425952231756863,
+        2.3186917139423757,
+        -0.17517937857805252
+      ],
+      "name": "bunny",
+      "mesh_name": "bunny_100v",
+      "vertex_count": 100,
+      "vertex_range": [
+        200,
+        300
+      ]
+    }
+  ]
+}

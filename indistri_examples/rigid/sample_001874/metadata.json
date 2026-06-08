@@ -1,0 +1,158 @@
+{
+  "mode": "dataset_mixed_6to10_air",
+  "category": "7_obj",
+  "sample_index": 1874,
+  "num_objects": 7,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "tetrahedron_4v",
+      "mesh_source": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "mesh_used": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "scale": 0.11188342846145763,
+      "vertex_count": 4,
+      "vertex_range": [
+        0,
+        4
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "plus_cross_prism_24v",
+      "mesh_source": "indistri_examples/meshes/plus_cross_prism_24v.obj",
+      "mesh_used": "indistri_examples/meshes/plus_cross_prism_24v.obj",
+      "scale": 0.17006660158062262,
+      "vertex_count": 24,
+      "vertex_range": [
+        4,
+        28
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "rhombic_dodecahedron_14v",
+      "mesh_source": "indistri_examples/meshes/rhombic_dodecahedron_14v.obj",
+      "mesh_used": "indistri_examples/meshes/rhombic_dodecahedron_14v.obj",
+      "scale": 0.09962341353538354,
+      "vertex_count": 14,
+      "vertex_range": [
+        28,
+        42
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_4_8v",
+      "mesh_source": "indistri_examples/meshes/prism_4_8v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_4_8v.obj",
+      "scale": 0.1367244041350939,
+      "vertex_count": 8,
+      "vertex_range": [
+        42,
+        50
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "truncated_cube_24v",
+      "mesh_source": "indistri_examples/meshes/truncated_cube_24v.obj",
+      "mesh_used": "indistri_examples/meshes/truncated_cube_24v.obj",
+      "scale": 0.12648357468423221,
+      "vertex_count": 24,
+      "vertex_range": [
+        50,
+        74
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "5_bipyramid_7v",
+      "mesh_source": "indistri_examples/meshes/5_bipyramid_7v.obj",
+      "mesh_used": "indistri_examples/meshes/5_bipyramid_7v.obj",
+      "scale": 0.1714971949286635,
+      "vertex_count": 7,
+      "vertex_range": [
+        74,
+        81
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "pentagonal_pyramid_6v",
+      "mesh_source": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "mesh_used": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "scale": 0.15164542947591036,
+      "vertex_count": 6,
+      "vertex_range": [
+        81,
+        87
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "mode": "dataset",
+  "category": "3_obj",
+  "sample_index": 1151,
+  "num_objects": 3,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "cube_8v",
+      "mesh_source": "indistri_examples/meshes/cube_8v.obj",
+      "mesh_used": "indistri_examples/meshes/cube_8v.obj",
+      "scale": 0.13910470947935488,
+      "vertex_count": 8,
+      "vertex_range": [
+        0,
+        8
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_4_8v",
+      "mesh_source": "indistri_examples/meshes/prism_4_8v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_4_8v.obj",
+      "scale": 0.15821708440306334,
+      "vertex_count": 8,
+      "vertex_range": [
+        8,
+        16
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_8_16v",
+      "mesh_source": "indistri_examples/meshes/prism_8_16v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_8_16v.obj",
+      "scale": 0.18259792987191503,
+      "vertex_count": 16,
+      "vertex_range": [
+        16,
+        32
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    }
+  ]
+}

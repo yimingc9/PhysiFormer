@@ -1,0 +1,54 @@
+{
+  "out_layout": "local_sample_dir",
+  "out_sample_rel_dir": "indistri_examples/soft/sample_000047",
+  "cond_rel_sample_dir": "indistri_examples/soft/sample_000047",
+  "first_frame_obj": "indistri_examples/soft/sample_000047/meshes/combined_frame_000.obj",
+  "metadata": "indistri_examples/soft/sample_000047/metadata.json",
+  "mesh_vertex_count_json": "src/mesh_primitives/vertex_counts_multiobj_all.json",
+  "fps_precomputed_path": "",
+  "objects": [
+    {
+      "obj_id": 0,
+      "mesh_name": "dodecahedron_20v",
+      "mesh_path": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "num_vertices": 20,
+      "vertex_slice": [
+        0,
+        20
+      ]
+    },
+    {
+      "obj_id": 1,
+      "mesh_name": "prism_8_16v",
+      "mesh_path": "indistri_examples/meshes/prism_8_16v.obj",
+      "num_vertices": 16,
+      "vertex_slice": [
+        20,
+        36
+      ]
+    },
+    {
+      "obj_id": 2,
+      "mesh_name": "antiprism_43_86v",
+      "mesh_path": "indistri_examples/meshes/antiprism_43_86v.obj",
+      "num_vertices": 86,
+      "vertex_slice": [
+        36,
+        122
+      ]
+    },
+    {
+      "obj_id": 3,
+      "mesh_name": "pentagonal_pyramid_6v",
+      "mesh_path": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "num_vertices": 6,
+      "vertex_slice": [
+        122,
+        128
+      ]
+    }
+  ],
+  "infer_num_frames": 49,
+  "infer_num_vertices": 128,
+  "pad_object_id": 10
+}

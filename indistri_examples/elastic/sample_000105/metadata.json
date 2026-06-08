@@ -1,0 +1,82 @@
+{
+  "mode": "dataset_pbd_mixed_1to5",
+  "category": "3_obj",
+  "sample_index": 105,
+  "num_objects": 3,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "3_bipyramid_5v",
+      "mesh_source": "indistri_examples/meshes/3_bipyramid_5v.obj",
+      "mesh_used": "indistri_examples/meshes/3_bipyramid_5v.obj",
+      "scale": 0.2081626784611269,
+      "vertex_count": 5,
+      "vertex_range": [
+        0,
+        5
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "truncated_cube_24v",
+      "mesh_source": "indistri_examples/meshes/truncated_cube_24v.obj",
+      "mesh_used": "indistri_examples/meshes/truncated_cube_24v.obj",
+      "scale": 0.17444813884911456,
+      "vertex_count": 24,
+      "vertex_range": [
+        5,
+        29
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "rhombic_dodecahedron_14v",
+      "mesh_source": "indistri_examples/meshes/rhombic_dodecahedron_14v.obj",
+      "mesh_used": "indistri_examples/meshes/rhombic_dodecahedron_14v.obj",
+      "scale": 0.1162216763915724,
+      "vertex_count": 14,
+      "vertex_range": [
+        29,
+        43
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    }
+  ]
+}

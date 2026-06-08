@@ -1,0 +1,20 @@
+# Python/cache files
+__pycache__/
+*.pyc
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local inference/evaluation outputs
+.inference_work/
+reports/
+**/sample_[0-9][0-9]/
+mesh_volume_cache.json
+
+# Local model checkpoints; publish these on Hugging Face instead.
+checkpoints/checkpoint-best.pt
+checkpoints/*.pt
+checkpoints/*.pth
+checkpoints/*.ckpt

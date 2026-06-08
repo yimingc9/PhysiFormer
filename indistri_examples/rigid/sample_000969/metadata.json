@@ -1,0 +1,158 @@
+{
+  "mode": "dataset_mixed_6to10_air",
+  "category": "7_obj",
+  "sample_index": 969,
+  "num_objects": 7,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "5_bipyramid_7v",
+      "mesh_source": "indistri_examples/meshes/5_bipyramid_7v.obj",
+      "mesh_used": "indistri_examples/meshes/5_bipyramid_7v.obj",
+      "scale": 0.13024222690511594,
+      "vertex_count": 7,
+      "vertex_range": [
+        0,
+        7
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "snake_prism_30v",
+      "mesh_source": "indistri_examples/meshes/snake_prism_30v.obj",
+      "mesh_used": "indistri_examples/meshes/snake_prism_30v.obj",
+      "scale": 0.12448852081045558,
+      "vertex_count": 30,
+      "vertex_range": [
+        7,
+        37
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "pentagonal_pyramid_6v",
+      "mesh_source": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "mesh_used": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "scale": 0.13008720934875767,
+      "vertex_count": 6,
+      "vertex_range": [
+        37,
+        43
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_7_14v",
+      "mesh_source": "indistri_examples/meshes/prism_7_14v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_7_14v.obj",
+      "scale": 0.12968780307152933,
+      "vertex_count": 14,
+      "vertex_range": [
+        43,
+        57
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "4_bipyramid_6v",
+      "mesh_source": "indistri_examples/meshes/4_bipyramid_6v.obj",
+      "mesh_used": "indistri_examples/meshes/4_bipyramid_6v.obj",
+      "scale": 0.14544912911151892,
+      "vertex_count": 6,
+      "vertex_range": [
+        57,
+        63
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_6_12v",
+      "mesh_source": "indistri_examples/meshes/prism_6_12v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_6_12v.obj",
+      "scale": 0.1332097143140647,
+      "vertex_count": 12,
+      "vertex_range": [
+        63,
+        75
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "icosahedron_12v",
+      "mesh_source": "indistri_examples/meshes/icosahedron_12v.obj",
+      "mesh_used": "indistri_examples/meshes/icosahedron_12v.obj",
+      "scale": 0.09053631908179072,
+      "vertex_count": 12,
+      "vertex_range": [
+        75,
+        87
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    }
+  ]
+}

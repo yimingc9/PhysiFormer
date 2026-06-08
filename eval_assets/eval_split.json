@@ -1,0 +1,10 @@
+{
+  "description": "Official demo four-sample publication evaluation split.",
+  "dataset_root": "eval_assets/eval_data",
+  "test": [
+    "2obj_elastic:0",
+    "3obj_rigid:0",
+    "4obj_elastic:0",
+    "5obj_rigid:0"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "mode": "dataset",
+  "category": "4_obj",
+  "sample_index": 2143,
+  "num_objects": 4,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "tetrahedron_4v",
+      "mesh_source": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "mesh_used": "indistri_examples/meshes/tetrahedron_4v.obj",
+      "scale": 0.18220991325167335,
+      "vertex_count": 4,
+      "vertex_range": [
+        0,
+        4
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "4_bipyramid_6v",
+      "mesh_source": "indistri_examples/meshes/4_bipyramid_6v.obj",
+      "mesh_used": "indistri_examples/meshes/4_bipyramid_6v.obj",
+      "scale": 0.26272612047902016,
+      "vertex_count": 6,
+      "vertex_range": [
+        4,
+        10
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "prism_6_12v",
+      "mesh_source": "indistri_examples/meshes/prism_6_12v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_6_12v.obj",
+      "scale": 0.2238094553768662,
+      "vertex_count": 12,
+      "vertex_range": [
+        10,
+        22
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    },
+    {
+      "name": "dodecahedron_20v",
+      "mesh_source": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "mesh_used": "indistri_examples/meshes/dodecahedron_20v.obj",
+      "scale": 0.18869570960302112,
+      "vertex_count": 20,
+      "vertex_range": [
+        22,
+        42
+      ],
+      "material": {
+        "kind": "rigid",
+        "effective_softness": 0.0,
+        "softness": 0.0,
+        "friction": 0.01,
+        "static_friction": 0.01,
+        "kinetic_friction": 0.01
+      }
+    }
+  ]
+}

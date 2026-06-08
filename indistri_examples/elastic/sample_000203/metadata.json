@@ -1,0 +1,63 @@
+{
+  "mode": "dataset_pbd_air_mixed_1to5",
+  "category": "2_obj",
+  "sample_index": 203,
+  "num_objects": 2,
+  "frames": 49,
+  "steps_per_frame": 5,
+  "dt": 0.004166666666666667,
+  "density": 1000.0,
+  "bounds_min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "bounds_max": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "gravity_z": -9.81,
+  "wall_clearance": 0.05,
+  "ceiling": 1.0,
+  "objects": [
+    {
+      "name": "pentagonal_pyramid_6v",
+      "mesh_source": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "mesh_used": "indistri_examples/meshes/pentagonal_pyramid_6v.obj",
+      "scale": 0.23991912506620877,
+      "vertex_count": 6,
+      "vertex_range": [
+        0,
+        6
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    },
+    {
+      "name": "prism_6_12v",
+      "mesh_source": "indistri_examples/meshes/prism_6_12v.obj",
+      "mesh_used": "indistri_examples/meshes/prism_6_12v.obj",
+      "scale": 0.22477380855126355,
+      "vertex_count": 12,
+      "vertex_range": [
+        6,
+        18
+      ],
+      "material": {
+        "kind": "elastic",
+        "effective_softness": 1.0,
+        "softness": 1.0,
+        "friction": 0.15,
+        "static_friction": 0.15,
+        "kinetic_friction": 0.15
+      }
+    }
+  ]
+}
