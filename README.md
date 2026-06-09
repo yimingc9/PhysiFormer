@@ -10,16 +10,21 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b" alt="arXiv">
-  <img src="https://yimingc9.github.io/physformer-secret/" alt="Project Page">
-  <img src="https://huggingface.co/spaces/yslan/PhysFormer" alt="Models">
+  <a href="https://arxiv.org/abs/YOUR_ARXIV_ID">
+    <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b.svg">
+  </a>
+  <a href="https://yimingc9.github.io/physformer-secret/">
+    <img src="https://img.shields.io/badge/Project-Page-4285F4.svg">
+  </a>
+  <a href="https://huggingface.co/spaces/yslan/PhysFormer">
+    <img src="https://img.shields.io/badge/🤗-Demo-yellow.svg">
+  </a>
 </p>
 
 <p align="center">
   <video
     src="https://github.com/user-attachments/assets/df075a8b-a24a-46e5-b563-7f14e1b73d86"
-    width="60%"
-    autoplay
+    width="420"
     muted
     loop
     playsinline>
@@ -39,7 +44,7 @@ structure across time, vertices, and objects. Trained on over 100k collision-ric
 simulated trajectories, PhysFormer generalizes to unseen real-world geometries, larger object counts,
 and mixed-material scenes.
 
-## Installation
+## ⚙️ Installation
 
 ```bash
 # Create conda environment
@@ -64,7 +69,7 @@ Download checkpoint from HuggingFace before running scripts:
 huggingface-cli download yslan/physformer checkpoint-best.pt --local-dir checkpoints
 ```
 
-## Minimal Inference
+## 🌟 Minimal Inference
 
 The example scripts write predicted rollout samples into each input sample directory as
 `sample_00/`, `sample_01/`, etc. Existing outputs are kept unless
@@ -83,13 +88,6 @@ Run OOD inference for generalization to complex geometries:
 
 ```bash
 bash scripts/run_ood_example.sh
-```
-
-This uses the OOD folders:
-
-```text
-ood_examples/2obj_cow_horse
-ood_examples/3obj_teapot_fish_bunny
 ```
 
 Common usage controls:
@@ -115,7 +113,7 @@ Useful direct launcher flags:
 - `--overwrite` / `--no-overwrite`: replace or preserve existing outputs.
 - `--dry-run`: print selected samples and command without running the model.
 
-## Evaluation
+## ✏️ Evaluation
 ```bash
 python eval_publish_losses.py \
   --ckpt checkpoints/checkpoint-best.pt \
