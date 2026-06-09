@@ -9,7 +9,6 @@ MAX_SAMPLES="${MAX_SAMPLES:-0}"
 SAMPLING_STEPS="${SAMPLING_STEPS:-}"
 CHECKPOINT="${CHECKPOINT:-checkpoints/checkpoint-best.pt}"
 RENDER_FLAG="${RENDER_FLAG:---save-mp4}"
-GT_RENDER_FLAG="${GT_RENDER_FLAG:---save-gt-mp4}"
 OVERWRITE_FLAG="${OVERWRITE_FLAG:---no-overwrite}"
 DRY_RUN_FLAG="${DRY_RUN_FLAG:-}"
 
@@ -28,20 +27,17 @@ fi
 if [[ -n "$RENDER_FLAG" ]]; then
   COMMON_ARGS+=("$RENDER_FLAG")
 fi
-if [[ -n "$GT_RENDER_FLAG" ]]; then
-  COMMON_ARGS+=("$GT_RENDER_FLAG")
-fi
 if [[ -n "$DRY_RUN_FLAG" ]]; then
   COMMON_ARGS+=("$DRY_RUN_FLAG")
 fi
 
-# Run rigid and soft separately so each group gets the correct material conditioning.
+# Run rigid and elastic separately so each group gets the correct material conditioning.
 "$PYTHON" run_official_demo_inference.py \
   --demo-root indistri_examples/rigid \
   "${COMMON_ARGS[@]}" \
   --rigid all
 
 "$PYTHON" run_official_demo_inference.py \
-  --demo-root indistri_examples/soft \
+  --demo-root indistri_examples/elastic \
   "${COMMON_ARGS[@]}" \
   --elastic all
