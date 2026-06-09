@@ -94,7 +94,7 @@ Common usage controls:
 GENERATIONS=1 MAX_SAMPLES=1 SAMPLING_STEPS=25 bash scripts/run_ood_example.sh
 
 # Change OOD object material conditioning.
-# By default, 2obj: horse elastic, cow rigid; 3obj: fish and bunny elastic, teapot rigit
+# By default, 2obj: horse elastic, cow rigid; 3obj: fish and bunny elastic, teapot rigid
 OOD_ELASTIC="horse bunny" OOD_RIGID="cow teapot fish" bash scripts/run_ood_example.sh
 ```
 
