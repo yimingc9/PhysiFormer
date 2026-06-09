@@ -124,7 +124,6 @@ Useful eval flags:
 
 Reported Evaluation Metrics:
 - `mse`: MSE on vertex positions.
-- `rigidity`: per-object Kabsch rigid alignment residual over frames `1..--rigidity_last_frame`.
-- `conservation_of_momentum`: system momentum drift compared against GT
-  `1..--momentum_last_frame`.
+- `rigidity`: per-object Kabsch rigid alignment residual across all frames against frame 0. 
+- `conservation_of_momentum`: system momentum drift compared against GT motion. 
 
