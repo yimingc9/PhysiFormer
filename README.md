@@ -120,7 +120,7 @@ Useful eval flags:
 
 - `--num_generations`: number of rollout samples evaluated per input sample.
 - `--limit`: evaluate only the first N split entries.
-- `--num_sampling_steps`, `--cfg_scale`: sampling controls.
+- `--num_sampling_steps`: sampling step number, default 50.
 
 Reported Evaluation Metrics:
 - `mse`: MSE on vertex positions.
