@@ -21,16 +21,17 @@
   </a>
 </p>
 
-<p align="center">
-  <video
-    src="https://github.com/user-attachments/assets/df075a8b-a24a-46e5-b563-7f14e1b73d86"
-    width="420"
-    autoplay
-    muted
-    loop
-    playsinline>
-  </video>
-</p>
+<div align="center">
+  <div style="width: 420px;">
+    <video
+      src="https://github.com/user-attachments/assets/df075a8b-a24a-46e5-b563-7f14e1b73d86"
+      autoplay
+      muted
+      loop
+      playsinline>
+    </video>
+  </div>
+</div>
 
 PhysFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
 in world coordinates for rigid and elastic materials. Rather than predicting future frames in
