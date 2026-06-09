@@ -83,7 +83,7 @@ bash scripts/run_indistri_example.sh
 ```
 
 This runs `indistri_examples/rigid` as all rigid materials and `indistri_examples/soft` as all elastic materials.
-It writes inference-only renders as `inference.mp4`. Ground truth for each example are rendered with blender and present.
+It writes inference-only renders as `inference.mp4`. Ground truth for each example rendered with blender are present. 
 
 Run OOD inference for generalization to complex geometries:
 
@@ -100,9 +100,6 @@ GENERATIONS=1 MAX_SAMPLES=1 SAMPLING_STEPS=25 bash scripts/run_ood_example.sh
 # Change OOD object material conditioning.
 # By default, 2obj: horse elastic, cow rigid; 3obj: fish and bunny elastic, teapot rigit
 OOD_ELASTIC="horse bunny" OOD_RIGID="cow teapot fish" bash scripts/run_ood_example.sh
-
-# Skip MP4 rendering.
-RENDER_FLAG="" bash scripts/run_indistri_example.sh
 ```
 
 Useful direct launcher flags:
