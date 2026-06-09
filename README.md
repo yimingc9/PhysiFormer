@@ -113,12 +113,12 @@ python eval_publish_losses.py \
   --ckpt checkpoints/checkpoint-best.pt \
   --out_json reports/publication_losses.json \
   --out_tsv reports/publication_losses.tsv \
-  -k 4
+  --num_generations 3
 ```
 
 Useful eval flags:
 
-- `-k`, `--num_generations`: number of rollout samples evaluated per input sample.
+- `--num_generations`: number of rollout samples evaluated per input sample.
 - `--limit`: evaluate only the first N split entries.
 - `--num_sampling_steps`, `--cfg_scale`: sampling controls.
 
