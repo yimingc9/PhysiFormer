@@ -41,7 +41,7 @@ structure across time, vertices, and objects. Trained on over 100k collision-ric
 simulated trajectories, PhysFormer generalizes to unseen real-world geometries, larger object counts,
 and mixed-material scenes.
 
-## ⚙️ Installation
+## ⚙️ Setup
 
 ```bash
 # Create conda environment
