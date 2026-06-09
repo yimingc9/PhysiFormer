@@ -25,7 +25,8 @@
   <img
     src="https://github.com/user-attachments/assets/4e5308a2-45ee-4a43-8337-2b51916cb3a0"
     alt="physformer teaser"
-    width="640">
+    width="640"
+    style="border-radius: 16px;">
 </p>
 
 PhysFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
