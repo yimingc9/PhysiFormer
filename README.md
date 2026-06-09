@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="25%">
+  <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="20%">
 </p>
 
 <h1 align="center">PhysFormer: Learning to Simulate Mechanics in World Space</h1>
@@ -25,7 +25,7 @@
   <img
     src="https://github.com/user-attachments/assets/0378211a-854c-4360-abd1-343c7993128e"
     alt="physformer teaser"
-    width="420">
+    width="640">
 </p>
 
 PhysFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
