@@ -78,7 +78,7 @@ Run in-distribution test set inference:
 bash scripts/run_indistri_example.sh
 ```
 
-This runs `indistri_examples/rigid` as all rigid materials and `indistri_examples/soft` as all elastic materials.
+This runs `indistri_examples/rigid` as all rigid materials and `indistri_examples/elastic` as all elastic materials.
 It writes inference-only renders as `inference.mp4`. Ground truth for each example rendered with blender are present. 
 
 Run OOD inference for generalization to complex geometries:
