@@ -23,7 +23,7 @@
 
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/0378211a-854c-4360-abd1-343c7993128e"
+    src="https://github.com/user-attachments/assets/4e5308a2-45ee-4a43-8337-2b51916cb3a0"
     alt="physformer teaser"
     width="640">
 </p>
