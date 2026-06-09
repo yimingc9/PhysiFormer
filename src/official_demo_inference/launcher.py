@@ -308,7 +308,6 @@ def build_engine_command(args: argparse.Namespace, samples: Sequence[DemoSample]
     ]
     cmd.append("--overwrite" if args.overwrite else "--no-overwrite")
     _append_optional(cmd, "--num_sampling_steps", args.num_sampling_steps)
-    _append_optional(cmd, "--cfg_scale", args.cfg_scale)
     if args.save_gif:
         cmd.append("--save_gif")
     if args.save_mp4:
@@ -377,7 +376,6 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--python", default=sys.executable, help="Python executable from the inference environment.")
     p.add_argument("--max-num-objects", type=int, default=10)
     p.add_argument("--num-sampling-steps", type=int, default=None)
-    p.add_argument("--cfg-scale", type=float, default=None)
     p.add_argument("--overwrite", action=argparse.BooleanOptionalAction, default=False)
     p.add_argument("--save-gif", action="store_true")
     p.add_argument("--save-mp4", action="store_true")

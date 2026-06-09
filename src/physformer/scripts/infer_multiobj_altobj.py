@@ -53,9 +53,9 @@ ENV_AND_MAT_SCENE_COND_DIM = 9
 ENV_AND_MAT_OBJECT_MATERIAL_DIM = 2
 NAMED_COLORS = {
     "bunny": (0.82, 0.76, 0.02, 1.0),
-    "cow": (0.00, 0.62, 0.66, 1.0),
+    "cow": (0.00, 0.72, 0.78, 1.0),
     "fish": (0.62, 0.80, 0.20, 1.0),
-    "horse": (0.88, 0.30, 0.24, 1.0),
+    "horse": (0.90, 0.32, 0.26, 1.0),
     "teapot": (0.68, 0.34, 0.82, 1.0),
 }
 MESH_EDGE_COLOR = (0.05, 0.06, 0.07, 0.62)
@@ -1262,27 +1262,6 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--amp", type=str, default="bf16", choices=["none", "bf16", "fp16"])
     p.add_argument("--sampling_method", type=str, default="", choices=["", "euler", "heun"])
     p.add_argument("--num_sampling_steps", type=int, default=0)
-    p.add_argument("--cfg_scale", type=float, default=None)
-    p.add_argument("--cfg_interval_min", type=float, default=None)
-    p.add_argument("--cfg_interval_max", type=float, default=None)
-    p.add_argument(
-        "--vel_cfg_scale",
-        type=float,
-        default=None,
-        help="Velocity-only CFG scale on first-frame conditioning (requires pos+vel conditioning, i.e. --cond_first_frame_velocity).",
-    )
-    p.add_argument(
-        "--vel_cfg_interval_min",
-        type=float,
-        default=None,
-        help="Velocity-only CFG lower interval bound in t (default: 0.0).",
-    )
-    p.add_argument(
-        "--vel_cfg_interval_max",
-        type=float,
-        default=None,
-        help="Velocity-only CFG upper interval bound in t (default: 1.0).",
-    )
     p.add_argument("--infer_num_frames", type=int, default=0)
     p.add_argument("--infer_num_vertices", type=int, default=0)
     p.add_argument(
@@ -1482,36 +1461,11 @@ def main() -> None:
     num_sampling_steps = int(train_args.get("num_sampling_steps", 50))
     if int(args.num_sampling_steps) > 0:
         num_sampling_steps = int(args.num_sampling_steps)
-    cfg_scale = float(train_args.get("cfg", 1.0))
-    if args.cfg_scale is not None:
-        cfg_scale = float(args.cfg_scale)
-    cfg_interval_min = float(train_args.get("cfg_interval_min", 0.0))
-    if args.cfg_interval_min is not None:
-        cfg_interval_min = float(args.cfg_interval_min)
-    cfg_interval_max = float(train_args.get("cfg_interval_max", 1.0))
-    if args.cfg_interval_max is not None:
-        cfg_interval_max = float(args.cfg_interval_max)
-    vel_cfg_scale = 1.0
-    if args.vel_cfg_scale is not None:
-        vel_cfg_scale = float(args.vel_cfg_scale)
-    vel_cfg_interval_min = 0.0
-    if args.vel_cfg_interval_min is not None:
-        vel_cfg_interval_min = float(args.vel_cfg_interval_min)
-    vel_cfg_interval_max = 1.0
-    if args.vel_cfg_interval_max is not None:
-        vel_cfg_interval_max = float(args.vel_cfg_interval_max)
     diff_cfg = DiffusionConfig(
         P_mean=float(train_args.get("P_mean", -0.8)),
         P_std=float(train_args.get("P_std", 0.8)),
         t_eps=float(train_args.get("t_eps", 5e-2)),
         noise_scale=float(train_args.get("noise_scale", 1.0)),
-        label_drop_prob=float(train_args.get("label_drop_prob", 0.1)),
-        cfg_scale=cfg_scale,
-        cfg_interval_min=cfg_interval_min,
-        cfg_interval_max=cfg_interval_max,
-        vel_cfg_scale=vel_cfg_scale,
-        vel_cfg_interval_min=vel_cfg_interval_min,
-        vel_cfg_interval_max=vel_cfg_interval_max,
         sampling_method=sampling_method,
         num_sampling_steps=num_sampling_steps,
     )
@@ -1533,8 +1487,7 @@ def main() -> None:
         f"cond_object_material={cond_object_material} "
         f"normalize_to_scene_box={normalize_to_scene_box} "
         f"sampling_method={diff_cfg.sampling_method} "
-        f"num_sampling_steps={diff_cfg.num_sampling_steps} "
-        f"cfg_scale={diff_cfg.cfg_scale}"
+        f"num_sampling_steps={diff_cfg.num_sampling_steps}"
     )
     vlog(f"delta_to_first_frame={delta_to_first_frame}")
 

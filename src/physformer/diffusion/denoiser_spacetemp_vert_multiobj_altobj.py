@@ -43,12 +43,6 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         self.num_classes = int(num_classes)
         self.diff = diffusion
 
-    def drop_labels(self, labels: torch.Tensor) -> torch.Tensor:
-        if self.diff.label_drop_prob <= 0:
-            return labels
-        drop = torch.rand(labels.shape[0], device=labels.device) < self.diff.label_drop_prob
-        return torch.where(drop, torch.full_like(labels, self.num_classes), labels)
-
     def sample_t(self, n: int, device=None) -> torch.Tensor:
         z = torch.randn(n, device=device) * self.diff.P_std + self.diff.P_mean
         return torch.sigmoid(z)
@@ -128,8 +122,6 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
                 else:
                     cond_first_frame = cond_first_frame * mask4.to(dtype=cond_first_frame.dtype)
 
-        labels_dropped = self.drop_labels(labels) if self.training else labels
-
         t = self.sample_t(x.size(0), device=x.device).view(-1, 1, 1, 1)  # (B,1,1,1)
         e = torch.randn_like(x) * self.diff.noise_scale
         if mask4 is not None:
@@ -138,17 +130,11 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         z = t * x + (1 - t) * e
         v = (x - z) / (1 - t).clamp_min(self.diff.t_eps)
 
-        cond = cond_first_frame
-        if cond is not None and self.training and self.diff.cond_drop_prob > 0:
-            drop = torch.rand(cond.shape[0], device=cond.device) < float(self.diff.cond_drop_prob)
-            cond = cond.clone()
-            cond[drop] = 0.0
-
         x_pred = self.net(
             z,
             t.flatten(),
-            labels_dropped,
-            cond=cond,
+            labels,
+            cond=cond_first_frame,
             mask=mask,
             object_ids=object_ids,
             scene_cond=scene_cond,
@@ -172,7 +158,7 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         return loss
 
     @torch.no_grad()
-    def _forward_v_cfg(
+    def _forward_v(
         self,
         z: torch.Tensor,
         t: torch.Tensor,
@@ -184,66 +170,17 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         scene_cond: Optional[torch.Tensor] = None,
         object_materials: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        def _v_pred_with_label_cfg(cond: Optional[torch.Tensor]) -> torch.Tensor:
-            x_cond = self.net(
-                z,
-                t.flatten(),
-                labels,
-                cond=cond,
-                mask=mask,
-                object_ids=object_ids,
-                scene_cond=scene_cond,
-                object_materials=object_materials,
-            )
-            v_cond = (x_cond - z) / (1.0 - t.view(-1, 1, 1, 1)).clamp_min(self.diff.t_eps)
-
-            low, high = self.diff.cfg_interval_min, self.diff.cfg_interval_max
-            interval_mask = (t < high) & ((low == 0.0) | (t > low))
-            cfg_scale = float(self.diff.cfg_scale)
-            if abs(cfg_scale - 1.0) < 1e-8 or not bool(interval_mask.any().item()):
-                return v_cond
-
-            x_uncond = self.net(
-                z,
-                t.flatten(),
-                torch.full_like(labels, self.num_classes),
-                cond=cond,
-                mask=mask,
-                object_ids=object_ids,
-                scene_cond=scene_cond,
-                object_materials=object_materials,
-            )
-            v_uncond = (x_uncond - z) / (1.0 - t.view(-1, 1, 1, 1)).clamp_min(self.diff.t_eps)
-
-            scale = torch.where(interval_mask, torch.full_like(t, cfg_scale), torch.ones_like(t))
-            scale = scale.view(-1, 1, 1, 1)
-            return v_uncond + scale * (v_cond - v_uncond)
-
-        # First: label-CFG (existing behavior).
-        v_full = _v_pred_with_label_cfg(cond_first_frame)
-
-        # Optional: velocity-only CFG on first-frame conditioning.
-        vel_cfg_scale = float(getattr(self.diff, "vel_cfg_scale", 1.0))
-        if cond_first_frame is None or abs(vel_cfg_scale - 1.0) < 1e-8:
-            return v_full
-
-        if int(cond_first_frame.shape[-1]) not in (6, 9):
-            # Only supported when conditioning contains a velocity chunk.
-            return v_full
-
-        vel_low = float(getattr(self.diff, "vel_cfg_interval_min", 0.0))
-        vel_high = float(getattr(self.diff, "vel_cfg_interval_max", 1.0))
-        vel_interval_mask = (t < vel_high) & ((vel_low == 0.0) | (t > vel_low))
-        if not bool(vel_interval_mask.any().item()):
-            return v_full
-
-        cond_vel0 = cond_first_frame.clone()
-        cond_vel0[..., 3:6] = 0.0
-        v_vel0 = _v_pred_with_label_cfg(cond_vel0)
-
-        vel_scale = torch.where(vel_interval_mask, torch.full_like(t, vel_cfg_scale), torch.ones_like(t))
-        vel_scale = vel_scale.view(-1, 1, 1, 1)
-        return v_vel0 + vel_scale * (v_full - v_vel0)
+        x_pred = self.net(
+            z,
+            t.flatten(),
+            labels,
+            cond=cond_first_frame,
+            mask=mask,
+            object_ids=object_ids,
+            scene_cond=scene_cond,
+            object_materials=object_materials,
+        )
+        return (x_pred - z) / (1.0 - t.view(-1, 1, 1, 1)).clamp_min(self.diff.t_eps)
 
     @torch.no_grad()
     def _euler_step(
@@ -259,7 +196,7 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         scene_cond: Optional[torch.Tensor] = None,
         object_materials: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        v_pred = self._forward_v_cfg(
+        v_pred = self._forward_v(
             z,
             t,
             labels,
@@ -286,7 +223,7 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         scene_cond: Optional[torch.Tensor] = None,
         object_materials: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        v_t = self._forward_v_cfg(
+        v_t = self._forward_v(
             z,
             t,
             labels,
@@ -298,7 +235,7 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         )
         dt = (t_next - t).view(-1, 1, 1, 1)
         z_euler = z + dt * v_t
-        v_next = self._forward_v_cfg(
+        v_next = self._forward_v(
             z_euler,
             t_next,
             labels,

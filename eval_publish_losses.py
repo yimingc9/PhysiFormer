@@ -803,9 +803,6 @@ def _build_argparser() -> argparse.ArgumentParser:
 
     p.add_argument("--sampling_method", type=str, default="", choices=["", "euler", "heun"])
     p.add_argument("--num_sampling_steps", type=int, default=0)
-    p.add_argument("--cfg_scale", type=float, default=None)
-    p.add_argument("--cfg_interval_min", type=float, default=None)
-    p.add_argument("--cfg_interval_max", type=float, default=None)
 
     p.add_argument(
         "--rigidity_last_frame",
@@ -921,25 +918,12 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
     num_sampling_steps = int(train_args.get("num_sampling_steps", 50))
     if int(args.num_sampling_steps) > 0:
         num_sampling_steps = int(args.num_sampling_steps)
-    cfg_scale = float(train_args.get("cfg", 1.0))
-    if args.cfg_scale is not None:
-        cfg_scale = float(args.cfg_scale)
-    cfg_interval_min = float(train_args.get("cfg_interval_min", 0.0))
-    if args.cfg_interval_min is not None:
-        cfg_interval_min = float(args.cfg_interval_min)
-    cfg_interval_max = float(train_args.get("cfg_interval_max", 1.0))
-    if args.cfg_interval_max is not None:
-        cfg_interval_max = float(args.cfg_interval_max)
 
     diff_cfg = DiffusionConfig(
         P_mean=float(train_args.get("P_mean", -0.8)),
         P_std=float(train_args.get("P_std", 0.8)),
         t_eps=float(train_args.get("t_eps", 5e-2)),
         noise_scale=float(train_args.get("noise_scale", 1.0)),
-        label_drop_prob=float(train_args.get("label_drop_prob", 0.0)),
-        cfg_scale=cfg_scale,
-        cfg_interval_min=cfg_interval_min,
-        cfg_interval_max=cfg_interval_max,
         sampling_method=sampling_method,
         num_sampling_steps=num_sampling_steps,
     )
@@ -1348,9 +1332,6 @@ def _run_main(args: argparse.Namespace) -> None:
         "norm_std": [float(v) for v in norm_std.tolist()],
         "sampling_method": str(diff_cfg.sampling_method),
         "num_sampling_steps": int(diff_cfg.num_sampling_steps),
-        "cfg_scale": float(diff_cfg.cfg_scale),
-        "cfg_interval_min": float(diff_cfg.cfg_interval_min),
-        "cfg_interval_max": float(diff_cfg.cfg_interval_max),
         "model_pad_object_id": int(model_pad_object_id),
         "precomp_pad_object_id": int(args.precomp_pad_object_id),
         "mse_mean": _nanmean([r.mse_mean for r in results]),
