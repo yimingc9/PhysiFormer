@@ -25,8 +25,7 @@
   <img
     src="https://github.com/user-attachments/assets/4e5308a2-45ee-4a43-8337-2b51916cb3a0"
     alt="physformer teaser"
-    width="640"
-    style="border-radius: 16px;">
+    width="640">
 </p>
 
 PhysFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
@@ -124,7 +123,7 @@ Useful eval flags:
 - `--num_sampling_steps`: sampling step number, default 50.
 
 Reported Evaluation Metrics:
-- `mse`: MSE on vertex positions.
+- `mse`: MSE on vertex position trajectory.
 - `rigidity`: per-object Kabsch rigid alignment residual across all frames against frame 0. 
 - `conservation_of_momentum`: system momentum drift compared against GT motion. 
 
