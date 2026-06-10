@@ -13,7 +13,7 @@
   <a href="https://arxiv.org/abs/YOUR_ARXIV_ID">
     <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b.svg">
   </a>
-  <a href="https://yimingc9.github.io/physformer-secret/">
+  <a href="https://yimingc9.github.io/physformer/">
     <img src="https://img.shields.io/badge/Project-Page-4285F4.svg">
   </a>
   <a href="https://huggingface.co/spaces/yslan/PhysFormer">
