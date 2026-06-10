@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -257,6 +258,66 @@ def _safe_bool01(x: object, default: bool = False) -> float:
 
 def _resolve_optional_bool(value: Optional[bool], default: bool) -> bool:
     return bool(default) if value is None else bool(value)
+
+
+def _slugify_filename_part(value: object) -> str:
+    text = str(value).strip().lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")
+
+
+def _object_display_name(obj: Any, fallback_index: int) -> str:
+    if isinstance(obj, dict):
+        for key in ("name", "mesh_name", "mesh_used", "mesh_source", "mesh_path"):
+            value = obj.get(key)
+            if isinstance(value, str) and value.strip():
+                stem = Path(value).stem if key not in {"name", "mesh_name"} else value
+                return _slugify_filename_part(stem)
+    return f"object{int(fallback_index)}"
+
+
+def _material_kind_from_object(obj: Any) -> Optional[str]:
+    if not isinstance(obj, dict):
+        return None
+    material = obj.get("material")
+    if isinstance(material, dict):
+        kind = material.get("kind")
+        if isinstance(kind, str) and kind.strip():
+            kind_l = kind.strip().lower()
+            if "rigid" in kind_l:
+                return "rigid"
+            if "elastic" in kind_l or "soft" in kind_l:
+                return "elastic"
+        softness = material.get("effective_softness", material.get("softness"))
+        if isinstance(softness, (int, float)):
+            return "elastic" if float(softness) > 0.0 else "rigid"
+    return None
+
+
+def _is_ood_sample_path(path: str) -> bool:
+    return "ood_examples" in Path(path).parts
+
+
+def _material_condition_suffix(meta: dict) -> str:
+    objects = meta.get("objects", []) if isinstance(meta, dict) else []
+    if not isinstance(objects, list) or not objects:
+        return ""
+
+    grouped: dict[str, list[str]] = {"rigid": [], "elastic": []}
+    for idx, obj in enumerate(objects):
+        kind = _material_kind_from_object(obj)
+        if kind not in grouped:
+            return ""
+        name = _object_display_name(obj, idx)
+        if name:
+            grouped[kind].append(name)
+
+    parts: list[str] = []
+    for kind in ("rigid", "elastic"):
+        names = sorted(dict.fromkeys(grouped[kind]))
+        if names:
+            parts.append("_".join(names + [kind]))
+    return "_".join(parts)
 
 
 def _log10_clamped(x: object, *, floor: float = 1e-8, default: float = 0.0) -> float:
@@ -2024,8 +2085,10 @@ def main() -> None:
                         )
 
                 if want_pred_render:
-                    out_gif = os.path.join(gen_dir, "inference.gif") if args.save_gif else None
-                    out_mp4 = os.path.join(gen_dir, "inference.mp4") if args.save_mp4 else None
+                    material_suffix = _material_condition_suffix(meta) if _is_ood_sample_path(cond_sample_dir) else ""
+                    inference_stem = f"inference_{material_suffix}" if material_suffix else "inference"
+                    out_gif = os.path.join(gen_dir, f"{inference_stem}.gif") if args.save_gif else None
+                    out_mp4 = os.path.join(gen_dir, f"{inference_stem}.mp4") if args.save_mp4 else None
                     _save_animation(pred_frames, out_gif=out_gif, out_mp4=out_mp4, fps=int(args.fps))
 
                 if want_gt_render:

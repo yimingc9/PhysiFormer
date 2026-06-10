@@ -13,6 +13,9 @@ reports/
 **/sample_[0-9][0-9]/
 mesh_volume_cache.json
 
+# Local timing helpers
+scripts/time_four_examples.sh
+
 # Local model checkpoints; publish these on Hugging Face instead.
 checkpoints/checkpoint-best.pt
 checkpoints/*.pt
