@@ -391,7 +391,7 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument(
         "--attention-debug",
         action="store_true",
-        help="Print the actual PyTorch attention backend used by the first attention call.",
+        help="Print the attention backend used by the first attention call: external flash-attn or PyTorch SDPA fallback.",
     )
     p.add_argument("--elastic", dest="elastic", action="append", nargs="+", default=[], metavar="PATTERN")
     p.add_argument("--rigid", dest="rigid", action="append", nargs="+", default=[], metavar="PATTERN")

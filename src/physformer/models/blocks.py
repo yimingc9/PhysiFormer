@@ -8,7 +8,31 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-_SDPA_DEBUG_PRINTED = False
+try:
+    from flash_attn import flash_attn_func as _flash_attn_func
+
+    _FLASH_ATTN_IMPORT_ERROR: Optional[BaseException] = None
+except Exception as exc:  # pragma: no cover - depends on optional CUDA extension install.
+    _flash_attn_func = None
+    _FLASH_ATTN_IMPORT_ERROR = exc
+
+
+_ATTENTION_LOGGED: set[str] = set()
+
+
+def _attention_debug_enabled() -> bool:
+    value = os.environ.get("JMT4D_SDPA_DEBUG", "0").strip().lower()
+    return value not in ("", "0", "false", "no", "off")
+
+
+def _attention_log_once(key: str, msg: str, *, debug_only: bool = False) -> None:
+    if debug_only and not _attention_debug_enabled():
+        return
+    if key in _ATTENTION_LOGGED:
+        return
+    _ATTENTION_LOGGED.add(key)
+    rank = os.environ.get("RANK", "0")
+    print(f"[attention][rank={rank}] {msg}", flush=True)
 
 
 def _configure_torch_sdpa() -> None:
@@ -105,22 +129,11 @@ class Attention(nn.Module):
         k = k.contiguous()
         v = v.contiguous()
 
-        def _debug_enabled() -> bool:
-            v = os.environ.get("JMT4D_SDPA_DEBUG", "0").strip().lower()
-            return v not in ("", "0", "false", "no", "off")
-
-        def _debug_print(msg: str) -> None:
-            global _SDPA_DEBUG_PRINTED
-            if _SDPA_DEBUG_PRINTED:
-                return
-            _SDPA_DEBUG_PRINTED = True
-            rank = os.environ.get("RANK", "0")
-            print(f"[attention][rank={rank}] {msg}", flush=True)
-
         def _raise_fast_sdpa_unavailable(cause: Optional[BaseException] = None) -> None:
             detail = (
-                "CUDA fast attention unavailable: this demo requires PyTorch flash SDPA or "
-                "memory-efficient CUDA SDPA and exits instead of using math/chunked fallback. "
+                "CUDA fast attention unavailable: this demo requires external flash-attn, "
+                "PyTorch flash SDPA, or PyTorch memory-efficient CUDA SDPA, and exits instead "
+                "of using math/chunked fallback. "
                 f"attention_device={q.device} attention_dtype={q.dtype} attention_shape={tuple(q.shape)}. "
                 "Check that CUDA is available, run with --device cuda --amp bf16 or --amp fp16, "
                 "and use a CUDA PyTorch wheel on a supported NVIDIA GPU."
@@ -145,26 +158,75 @@ class Attention(nn.Module):
                     q, k, v, attn_mask=attn_mask, dropout_p=dropout_p, is_causal=is_causal
                 )
 
+        def _try_external_flash_attn() -> Optional[torch.Tensor]:
+            if _flash_attn_func is None:
+                detail = f"{type(_FLASH_ATTN_IMPORT_ERROR).__name__}: {_FLASH_ATTN_IMPORT_ERROR}"
+                _attention_log_once(
+                    "external-flash-import-missing",
+                    "External flash-attn is not importable; falling back to PyTorch SDPA. "
+                    f"Install flash-attn==2.6.3 for the README environment if you want the preferred path. ({detail})",
+                )
+                return None
+            if attn_mask is not None:
+                _attention_log_once(
+                    "external-flash-mask-fallback",
+                    "External flash-attn is installed, but this attention call has a padding mask; "
+                    "using PyTorch SDPA for masked attention.",
+                )
+                return None
+
+            try:
+                # flash_attn_func expects (B, S, H, Hd); the model stores (B, H, S, Hd).
+                q_fa = q.transpose(1, 2).contiguous()
+                k_fa = k.transpose(1, 2).contiguous()
+                v_fa = v.transpose(1, 2).contiguous()
+                out = _flash_attn_func(q_fa, k_fa, v_fa, dropout_p=dropout_p, causal=is_causal)
+                _attention_log_once(
+                    "external-flash-active",
+                    "Using external flash-attn as the preferred attention backend "
+                    f"(dtype={q.dtype}, q={tuple(q.shape)}).",
+                )
+                return out.transpose(1, 2).contiguous()
+            except Exception as exc:
+                _attention_log_once(
+                    "external-flash-runtime-fallback",
+                    "External flash-attn was importable but failed for this attention shape; "
+                    "falling back to PyTorch SDPA. "
+                    f"reason={type(exc).__name__}: {exc}",
+                )
+                return None
+
         if not q.is_cuda or q.dtype not in (torch.float16, torch.bfloat16) or not hasattr(torch.backends.cuda, "sdp_kernel"):
             _raise_fast_sdpa_unavailable()
 
+        out = _try_external_flash_attn()
+        if out is not None:
+            return out
+
         try:
-            if _debug_enabled():
+            if _attention_debug_enabled():
                 try:
                     out = _try_sdpa_with_sdp_kernel(flash=True, mem_efficient=False, math_backend=False)
-                    _debug_print(
-                        "CUDA fast attention active: using PyTorch flash SDPA "
-                        f"(external flash-attn package is not required). dtype={q.dtype} q={tuple(q.shape)}"
+                    _attention_log_once(
+                        "pytorch-flash-sdpa-active",
+                        "Using PyTorch flash SDPA fallback "
+                        f"(dtype={q.dtype}, q={tuple(q.shape)}).",
                     )
                     return out
                 except Exception:
                     out = _try_sdpa_with_sdp_kernel(flash=False, mem_efficient=True, math_backend=False)
-                    _debug_print(
-                        "CUDA fast attention active: using PyTorch memory-efficient SDPA "
-                        f"(flash SDPA was unavailable). dtype={q.dtype} q={tuple(q.shape)}"
+                    _attention_log_once(
+                        "pytorch-mem-efficient-sdpa-active",
+                        "Using PyTorch memory-efficient SDPA fallback "
+                        f"(PyTorch flash SDPA was unavailable; dtype={q.dtype}, q={tuple(q.shape)}).",
                     )
                     return out
 
+            _attention_log_once(
+                "pytorch-sdpa-fallback",
+                "Using PyTorch SDPA fallback with flash and memory-efficient CUDA kernels enabled "
+                "(math fallback disabled). Pass --attention-debug to print the exact PyTorch SDPA backend.",
+            )
             return _try_sdpa_with_sdp_kernel(flash=True, mem_efficient=True, math_backend=False)
         except Exception as exc:
             _raise_fast_sdpa_unavailable(exc)
