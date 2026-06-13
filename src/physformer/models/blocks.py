@@ -164,7 +164,7 @@ class Attention(nn.Module):
                 _attention_log_once(
                     "external-flash-import-missing",
                     "External flash-attn is not importable; falling back to PyTorch SDPA. "
-                    f"Install flash-attn==2.6.3 for the README environment if you want the preferred path. ({detail})",
+                    f"Install the README prebuilt flash-attn wheel if you want the preferred path. ({detail})",
                 )
                 return None
             if attn_mask is not None:
