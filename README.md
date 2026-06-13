@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="18%">
+  <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="20%">
 </p>
 
-<h1 align="center">PhysFormer: Learning to Simulate Mechanics in World Space</h1>
+<h1 align="center">PhysFormer: Learning to Simulate Mechanics<br> in World Space</h1>
 
 <p align="center">
   Yiming Chen, Yushi Lan, Andrea Vedaldi<br>
