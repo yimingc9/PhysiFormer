@@ -52,20 +52,12 @@ conda activate physformer
 pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
 
 # Install remaining requirements, including flash-attn.
-# --no-build-isolation lets flash-attn build against the torch wheel above.
 pip install --no-build-isolation -r requirements.txt
 ```
 
-The copied model prefers external FlashAttention via `flash-attn==2.6.3`, which is compatible
-with the `torch==2.5.1` CUDA 12.4 environment above. If `flash-attn` is missing or unsupported
+If `flash-attn` is missing or unsupported
 for a specific attention call, the model falls back to PyTorch scaled-dot-product attention
-using CUDA flash/memory-efficient SDPA kernels. The slow math SDPA fallback is disabled.
-
-To see which backend is used on the first attention call:
-
-```bash
-python run_official_demo_inference.py --attention-debug ...
-```
+using CUDA flash/memory-efficient SDPA kernels.
 
 ## 🤗 Model Access
 
