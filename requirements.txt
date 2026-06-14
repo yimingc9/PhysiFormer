@@ -1,10 +1,10 @@
-# Hugging Face Spaces installs this file directly. For local installs, it is still fine to install
-# PyTorch explicitly first with the CUDA wheel index; pip will then treat it as already satisfied.
+# Hugging Face Spaces installs this file directly. 
+# For local installs, pip will then treat it as already satisfied.
 --extra-index-url https://download.pytorch.org/whl/cu124
 torch==2.5.1
 torchvision==0.20.1
 
-# External FlashAttention preferred by the model. Use the prebuilt wheel that
+# FlashAttention recommended. Use the prebuilt wheel that
 # matches Python 3.10, CUDA 12, torch 2.5, and cxx11 ABI false.
 flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3%2Bcu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
 
@@ -16,6 +16,6 @@ numpy==1.24.4
 matplotlib==3.10.8
 tqdm==4.67.3
 
-# Needed for --save-gif, --save-mp4, and render-existing commands.
+# Needed for --save-gif, --save-mp4 commands.
 imageio==2.37.3
 imageio-ffmpeg==0.6.0
