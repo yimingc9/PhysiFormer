@@ -54,8 +54,7 @@ pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorc
 # Install remaining requirements, including the prebuilt flash-attn wheel.
 pip install -r requirements.txt
 ```
-If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels,
-The copied model prefers external FlashAttention via a prebuilt `flash-attn==2.8.3` wheel:
+If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels.
 
 ## 🤗 Model Access
 
