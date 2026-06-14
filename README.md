@@ -61,7 +61,7 @@ If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels.
 Download checkpoint from HuggingFace before running scripts:
 
 ```bash
-huggingface-cli download yslan/physformer checkpoint-best.pt --local-dir checkpoints
+hf download yslan/physformer checkpoint-best.pt --local-dir checkpoints
 ```
 
 ## 🌟 Minimal Inference
