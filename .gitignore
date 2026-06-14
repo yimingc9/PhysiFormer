@@ -12,6 +12,10 @@ __pycache__/
 reports/
 **/sample_[0-9][0-9]/
 mesh_volume_cache.json
+indistri_examples/elastic/0/vertices.npz
+indistri_examples/rigid/0/vertices.npz
+ood_examples/2obj_cow_horse/0_blender/vertices.npz
+ood_examples/3obj_teapot_fish_bunny/0_blender/vertices.npz
 
 # Local timing helpers
 scripts/time_four_examples.sh

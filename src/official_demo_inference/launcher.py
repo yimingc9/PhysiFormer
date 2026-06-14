@@ -259,7 +259,7 @@ def _append_optional(cmd: list[str], flag: str, value: object | None) -> None:
 
 def build_engine_command(args: argparse.Namespace, samples: Sequence[DemoSample], forward_args: Sequence[str]) -> list[str]:
     code_root = _code_root()
-    engine = code_root / "src" / "physformer" / "scripts" / "infer_multiobj_altobj.py"
+    engine = code_root / "src" / "physformer" / "scripts" / "infer.py"
     work_root = code_root / ".inference_work"
     cond_list = work_root / "cond_sample_dirs.txt"
     conditioned_metadata = work_root / "conditioned_metadata.jsonl"
@@ -459,7 +459,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     env["PYTHONPATH"] = src_path + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     env.setdefault("MPLCONFIGDIR", str(_code_root() / ".inference_work" / "matplotlib"))
     if args.attention_debug:
-        env["JMT4D_SDPA_DEBUG"] = "1"
+        env["PHYSFORMER_SDPA_DEBUG"] = "1"
     _run_with_log(cmd, env=env, cwd=_code_root(), log_path=_code_root() / ".inference_work" / "inference.log")
     return 0
 

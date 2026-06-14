@@ -45,7 +45,8 @@ from physformer.data.multiobj_utils_multiobj import (
 from physformer.data.obj_io import load_obj_vertices_faces
 from physformer.data.vertex_utils import fix_num_vertices
 from physformer.diffusion.denoiser import DiffusionConfig
-from physformer.diffusion.denoiser_spacetemp_vert_multiobj_altobj import DenoiserMeshVideoMultiObjAltObj
+from physformer.diffusion.physformer_denoiser import PhysFormerDenoiser
+from physformer.models.physformer import canonical_model_name
 
 
 SCENE_COND_DIM = 10
@@ -254,10 +255,6 @@ def _safe_float(x: object, default: float = 0.0) -> float:
 
 def _safe_bool01(x: object, default: bool = False) -> float:
     return 1.0 if bool(x) else (1.0 if bool(default) else 0.0)
-
-
-def _resolve_optional_bool(value: Optional[bool], default: bool) -> bool:
-    return bool(default) if value is None else bool(value)
 
 
 def _slugify_filename_part(value: object) -> str:
@@ -792,141 +789,6 @@ def _parse_path_list(spec: str) -> list[str]:
     return [p.strip() for p in spec.split(",") if p.strip()]
 
 
-def _normalize_fps_points_np(
-    fps_points: np.ndarray,
-    *,
-    coord_scale: float,
-    coord_shift: float,
-    norm_mean: np.ndarray,
-    norm_std: np.ndarray,
-) -> np.ndarray:
-    out = fps_points.astype(np.float32, copy=False)
-    out = (out - float(coord_shift)) / float(coord_scale)
-    mean = norm_mean.reshape((1,) * (out.ndim - 1) + (3,))
-    std = norm_std.reshape((1,) * (out.ndim - 1) + (3,))
-    out = (out - mean) / std
-    return out.astype(np.float32, copy=False)
-
-
-def _candidate_fps_paths(
-    *,
-    fps_precomputed_root: str,
-    cond_sample_dir: str,
-    cond_data_root: str,
-    rel_sample_dir: Optional[str],
-) -> list[str]:
-    root = os.path.abspath(os.path.expanduser(str(fps_precomputed_root)))
-    candidates: list[str] = []
-    if rel_sample_dir:
-        candidates.append(os.path.join(root, f"{str(rel_sample_dir).strip('/')}.npz"))
-    if cond_data_root:
-        try:
-            rel = os.path.relpath(os.path.abspath(cond_sample_dir), os.path.abspath(cond_data_root))
-            if not rel.startswith(".."):
-                candidates.append(os.path.join(root, f"{rel.replace(os.sep, '/')}.npz"))
-        except ValueError:
-            pass
-    candidates.append(os.path.join(root, f"{Path(cond_sample_dir).name}.npz"))
-
-    out: list[str] = []
-    seen: set[str] = set()
-    for path in candidates:
-        path = os.path.abspath(os.path.expanduser(str(path)))
-        if path not in seen:
-            seen.add(path)
-            out.append(path)
-    return out
-
-
-def _load_ca_fps_inputs(
-    *,
-    fps_precomputed_root: str,
-    fps_k: int,
-    dynamic_anchor: bool,
-    max_num_objects: int,
-    pad_object_id: int,
-    cond_sample_dir: str,
-    cond_data_root: str,
-    rel_sample_dir: Optional[str],
-    infer_num_frames: int,
-    coord_scale: float,
-    coord_shift: float,
-    norm_mean: np.ndarray,
-    norm_std: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, str]:
-    if int(fps_k) <= 0:
-        raise ValueError(f"fps_k must be > 0 for FPS-conditioned inference, got {fps_k}")
-    if not fps_precomputed_root:
-        raise ValueError("FPS-conditioned checkpoint requires --fps_precomputed_root or fps_precomputed_root in checkpoint args.")
-
-    candidates = _candidate_fps_paths(
-        fps_precomputed_root=fps_precomputed_root,
-        cond_sample_dir=cond_sample_dir,
-        cond_data_root=cond_data_root,
-        rel_sample_dir=rel_sample_dir,
-    )
-    fps_path = next((path for path in candidates if os.path.isfile(path)), "")
-    if not fps_path:
-        raise FileNotFoundError("Missing FPS precomputed file. Tried:\n  " + "\n  ".join(candidates))
-
-    key_points = f"fps_points_k{int(fps_k)}"
-    key_object_ids = f"fps_object_ids_k{int(fps_k)}"
-    key_dynamic_points = f"fps_dynamic_points_k{int(fps_k)}"
-    with np.load(fps_path, allow_pickle=False) as data:
-        if key_points not in data:
-            raise KeyError(f"Missing key '{key_points}' in FPS precomputed file: {fps_path}")
-        if key_object_ids not in data:
-            raise KeyError(f"Missing key '{key_object_ids}' in FPS precomputed file: {fps_path}")
-        fps_points_static = data[key_points].astype(np.float32, copy=False)
-        fps_object_ids_src = data[key_object_ids].astype(np.int64, copy=False)
-        if bool(dynamic_anchor):
-            if key_dynamic_points not in data:
-                raise KeyError(f"Missing key '{key_dynamic_points}' in FPS precomputed file: {fps_path}")
-            fps_points_src = data[key_dynamic_points].astype(np.float32, copy=False)
-        else:
-            fps_points_src = fps_points_static
-
-    if fps_points_static.ndim != 2 or fps_points_static.shape[1] != 3:
-        raise ValueError(f"Invalid {key_points} shape in {fps_path}: got {fps_points_static.shape}")
-    if fps_object_ids_src.shape != (fps_points_static.shape[0],):
-        raise ValueError(f"Invalid {key_object_ids} shape in {fps_path}: got {fps_object_ids_src.shape}")
-    if bool(dynamic_anchor):
-        if fps_points_src.ndim != 3 or fps_points_src.shape[1:] != fps_points_static.shape:
-            raise ValueError(
-                f"Invalid {key_dynamic_points} shape in {fps_path}: expected (F,{fps_points_static.shape[0]},3), got {fps_points_src.shape}"
-            )
-        if int(fps_points_src.shape[0]) < int(infer_num_frames):
-            raise ValueError(
-                f"{key_dynamic_points} has only {fps_points_src.shape[0]} frames but inference needs {infer_num_frames}: {fps_path}"
-            )
-        fps_points_src = fps_points_src[: int(infer_num_frames)]
-
-    max_fps_tokens = int(max_num_objects) * int(fps_k)
-    n = int(fps_points_static.shape[0])
-    if n > max_fps_tokens:
-        raise ValueError(f"FPS token count {n} exceeds capacity {max_fps_tokens}: {fps_path}")
-
-    fps_points_norm = _normalize_fps_points_np(
-        fps_points_src,
-        coord_scale=coord_scale,
-        coord_shift=coord_shift,
-        norm_mean=norm_mean,
-        norm_std=norm_std,
-    )
-    if bool(dynamic_anchor):
-        fps_points_out = np.zeros((int(infer_num_frames), max_fps_tokens, 3), dtype=np.float32)
-        fps_points_out[:, :n, :] = fps_points_norm
-    else:
-        fps_points_out = np.zeros((max_fps_tokens, 3), dtype=np.float32)
-        fps_points_out[:n, :] = fps_points_norm
-
-    fps_mask_out = np.zeros((max_fps_tokens,), dtype=np.float32)
-    fps_mask_out[:n] = 1.0
-    fps_object_ids_out = np.full((max_fps_tokens,), int(pad_object_id), dtype=np.int64)
-    fps_object_ids_out[:n] = fps_object_ids_src
-    return fps_points_out, fps_mask_out, fps_object_ids_out, fps_path
-
-
 def _list_cond_sample_dirs(data_root: str, *, metadata_filename: str) -> list[str]:
     """
     Finds sample directories under data_root that look like:
@@ -1188,7 +1050,7 @@ def _save_animation(
 
 
 def build_argparser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser("PhysFormer multi-object vertex-token inference (spacetime, AltObj)")
+    p = argparse.ArgumentParser("PhysFormer multi-object vertex-token inference")
     p.add_argument("--ckpt", type=str, required=True)
     p.add_argument("--out_dir", type=str, required=True)
     p.add_argument("--num_samples", type=int, default=1)
@@ -1261,14 +1123,6 @@ def build_argparser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument("--metadata_filename", type=str, default="metadata.json")
-    p.add_argument("--fps_precomputed_root", type=str, default="", help="Override FPS precomputed root for CA-FPS checkpoints.")
-    p.add_argument("--fps_k", type=int, default=0, help="Override FPS anchors per object for CA-FPS checkpoints (0 = use ckpt).")
-    p.add_argument(
-        "--dynamic_anchor",
-        action=argparse.BooleanOptionalAction,
-        default=None,
-        help="Override whether a CA-FPS checkpoint uses dynamic per-frame anchors.",
-    )
 
     # viz / output
     p.add_argument(
@@ -1391,7 +1245,7 @@ def main() -> None:
             f"--max_num_objects={max_num_objects} is smaller than checkpoint max_num_objects={ckpt_max_num_objects}."
         )
     if int(max_num_objects) > int(ckpt_max_num_objects):
-        init_std = float(os.environ.get("JMT4D_OBJ_EMBED_INIT_STD", "0.02"))
+        init_std = float(os.environ.get("PHYSFORMER_OBJ_EMBED_INIT_STD", os.environ.get("JMT4D_OBJ_EMBED_INIT_STD", "0.02")))
         changed = _maybe_expand_ckpt(ckpt, target_max_num_objects=int(max_num_objects), init_std=float(init_std))
         if bool(changed):
             vlog(
@@ -1462,25 +1316,8 @@ def main() -> None:
         scene_cond_embed_out_tokens = 0
         object_material_dim = 0
 
-    model_name = str(train_args.get("model", "MeshVideoDiT-ST-Vert-B-MultiObj"))
-    is_ca_fps_model = model_name.endswith("-CA-FPS")
-    is_rwonce_invarobj_topoonce_model = "SummaryRWOnceInvarObjTopoOnce" in model_name
-    is_rwonce_invarobj_topo_model = (
-        "SummaryRWOnceInvarObjTopo" in model_name and not bool(is_rwonce_invarobj_topoonce_model)
-    )
-    is_rwonce_invarobj_model = "SummaryRWOnceInvarObj" in model_name and not (
-        bool(is_rwonce_invarobj_topo_model) or bool(is_rwonce_invarobj_topoonce_model)
-    )
-    is_summary_rwonce_model = "SummaryRWOnce" in model_name and not (
-        bool(is_rwonce_invarobj_model)
-        or bool(is_rwonce_invarobj_topo_model)
-        or bool(is_rwonce_invarobj_topoonce_model)
-    )
-    is_summary_rw_model = "SummaryRW" in model_name
-    uses_fps_inputs = bool(is_ca_fps_model or is_rwonce_invarobj_topo_model or is_rwonce_invarobj_topoonce_model)
-    fps_k = int(args.fps_k) if int(args.fps_k) > 0 else int(train_args.get("fps_k", 0) or train_args.get("shape_fps_k", 0) or 0)
-    dynamic_anchor = _resolve_optional_bool(args.dynamic_anchor, bool(train_args.get("dynamic_anchor", False)))
-    fps_precomputed_root = str(args.fps_precomputed_root).strip() or str(train_args.get("fps_precomputed_root", "")).strip()
+    ckpt_model_name = str(train_args.get("model", "PhysFormer-B"))
+    model_name = canonical_model_name(ckpt_model_name)
 
     model_kwargs = {
         "use_rope": bool(train_args.get("use_rope", True)),
@@ -1490,32 +1327,12 @@ def main() -> None:
         "attn_drop": float(train_args.get("attn_drop", 0.0)),
         "proj_drop": float(train_args.get("proj_drop", 0.0)),
         "max_num_objects": int(max_num_objects),
-        "use_object_id_embed": bool(
-            is_summary_rw_model
-            and not (is_rwonce_invarobj_model or is_rwonce_invarobj_topo_model or is_rwonce_invarobj_topoonce_model)
-        ),
+        "use_object_id_embed": False,
         "num_scene_tokens": int(num_scene_tokens),
         "scene_cond_dim": int(scene_cond_dim),
         "scene_cond_embed_out_tokens": int(scene_cond_embed_out_tokens),
         "object_material_dim": int(object_material_dim),
     }
-    if bool(is_summary_rw_model):
-        for key in ("num_scene_tokens", "scene_cond_dim", "scene_cond_embed_out_tokens", "object_material_dim"):
-            model_kwargs.pop(key, None)
-    if bool(is_ca_fps_model):
-        if int(fps_k) <= 0:
-            raise ValueError("CA-FPS checkpoint is missing fps_k; pass --fps_k.")
-        model_kwargs["max_fps_tokens"] = int(max_num_objects) * int(fps_k)
-        model_kwargs["dynamic_anchor"] = bool(dynamic_anchor)
-    if bool(is_rwonce_invarobj_topo_model or is_rwonce_invarobj_topoonce_model):
-        if int(fps_k) <= 0:
-            raise ValueError("RWOnceInvarObjTopo checkpoint is missing shape_fps_k; pass --fps_k.")
-        model_kwargs["shape_tokens_per_object"] = int(train_args.get("shape_tokens_per_object", 32))
-        model_kwargs["shape_encoder_layers"] = int(train_args.get("shape_encoder_layers", 2))
-        model_kwargs["shape_point_fourier_dim"] = int(train_args.get("shape_point_fourier_dim", 48))
-        model_kwargs["require_shape_tokens"] = True
-    if bool(is_summary_rw_model):
-        model_kwargs["vertex_read_rope"] = bool(train_args.get("vertex_read_rope", True))
     sampling_method = str(train_args.get("sampling_method", "heun"))
     if args.sampling_method:
         sampling_method = str(args.sampling_method)
@@ -1538,8 +1355,6 @@ def main() -> None:
         f"max_vertices={int(model_kwargs['max_vertices'])} "
         f"env_and_mat={bool(args.env_and_mat)} "
         f"max_num_objects={max_num_objects} "
-        f"fps_k={fps_k if uses_fps_inputs else 0} "
-        f"dynamic_anchor={bool(dynamic_anchor) if is_ca_fps_model else False} "
         f"num_scene_tokens={num_scene_tokens} "
         f"scene_cond_dim={scene_cond_dim} "
         f"scene_cond_embed_out_tokens={scene_cond_embed_out_tokens} "
@@ -1552,19 +1367,7 @@ def main() -> None:
     )
     vlog(f"delta_to_first_frame={delta_to_first_frame}")
 
-    if bool(
-        is_ca_fps_model
-        or is_rwonce_invarobj_topoonce_model
-        or is_rwonce_invarobj_topo_model
-        or is_rwonce_invarobj_model
-        or is_summary_rwonce_model
-        or is_summary_rw_model
-    ):
-        raise NotImplementedError(
-            "This publication export contains the plain MultiObj-AltObj inference path used by "
-            "checkpoint-best.pt. Re-export the full PhysFormer package for CA-FPS/RW checkpoint families."
-        )
-    denoiser_cls = DenoiserMeshVideoMultiObjAltObj
+    denoiser_cls = PhysFormerDenoiser
     model = denoiser_cls(
         model_name=model_name,
         num_frames=int(train_args.get("num_frames", 32)),
@@ -1863,30 +1666,6 @@ def main() -> None:
             object_ids_full = np.concatenate([object_ids_full, pad], axis=0)
         object_ids = torch.from_numpy(object_ids_full.astype(np.int64)).to(device=device, dtype=torch.long)[None, :]  # (1,V)
 
-        fps_points_t = None
-        fps_mask_t = None
-        fps_object_ids_t = None
-        fps_path = ""
-        if bool(uses_fps_inputs):
-            fps_points_np, fps_mask_np, fps_object_ids_np, fps_path = _load_ca_fps_inputs(
-                fps_precomputed_root=fps_precomputed_root,
-                fps_k=int(fps_k),
-                dynamic_anchor=bool(dynamic_anchor) if bool(is_ca_fps_model) else False,
-                max_num_objects=int(max_num_objects),
-                pad_object_id=int(pad_object_id),
-                cond_sample_dir=cond_sample_dir,
-                cond_data_root=str(args.cond_data_root),
-                rel_sample_dir=rel_sample_dir,
-                infer_num_frames=int(infer_num_frames),
-                coord_scale=coord_scale,
-                coord_shift=coord_shift,
-                norm_mean=norm_mean,
-                norm_std=norm_std,
-            )
-            fps_points_t = torch.from_numpy(fps_points_np).to(device=device, dtype=torch.float32)[None, ...]
-            fps_mask_t = torch.from_numpy(fps_mask_np).to(device=device, dtype=torch.float32)[None, :]
-            fps_object_ids_t = torch.from_numpy(fps_object_ids_np).to(device=device, dtype=torch.long)[None, :]
-
         # Per-object topology (faces) from the first-frame combined OBJ (split by vertex slices).
         faces_by_obj: list[np.ndarray] = []
         v0, f0 = load_obj_vertices_faces(first_obj_path)
@@ -1936,7 +1715,6 @@ def main() -> None:
                         "metadata_source": str(meta_source),
                         "conditioned_metadata_jsonl": str(args.conditioned_metadata_jsonl),
                         "mesh_vertex_count_json": mesh_vertex_count_json,
-                        "fps_precomputed_path": fps_path,
                         "objects": [
                             {
                                 "obj_id": int(k),
@@ -1979,14 +1757,6 @@ def main() -> None:
                 "object_materials": object_materials_t,
                 "clamp_cond_first_frame": not bool(delta_to_first_frame),
             }
-            if bool(uses_fps_inputs):
-                generate_kwargs.update(
-                    {
-                        "fps_points": fps_points_t,
-                        "fps_mask": fps_mask_t,
-                        "fps_object_ids": fps_object_ids_t,
-                    }
-                )
             with torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
                 x_gen, _ = model.generate(y, **generate_kwargs)
             if device.type == "cuda":

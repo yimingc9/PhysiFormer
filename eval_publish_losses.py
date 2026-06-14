@@ -354,6 +354,86 @@ def _maybe_expand_ckpt(ckpt: Any, *, target_max_num_objects: int, init_std: floa
     return changed
 
 
+def _find_state_tensor_by_suffix(state_dict: dict[str, Any], suffix: str) -> Optional[torch.Tensor]:
+    for key, value in state_dict.items():
+        if str(key).endswith(str(suffix)) and torch.is_tensor(value):
+            return value
+    return None
+
+
+def _infer_conditioning_dims_from_state_dict(state_dict: dict[str, Any]) -> tuple[int, int, int, int]:
+    num_scene_tokens = 0
+    scene_cond_dim = 0
+    scene_cond_embed_out_tokens = 0
+    object_material_dim = 0
+
+    scene_in = _find_state_tensor_by_suffix(state_dict, "scene_cond_embed.0.weight")
+    scene_out = _find_state_tensor_by_suffix(state_dict, "scene_cond_embed.2.weight")
+    hidden_size = int(scene_in.shape[0]) if torch.is_tensor(scene_in) and scene_in.ndim == 2 else 0
+    if torch.is_tensor(scene_in) and scene_in.ndim == 2:
+        scene_cond_dim = int(scene_in.shape[1])
+    if hidden_size > 0 and torch.is_tensor(scene_out) and scene_out.ndim == 2 and int(scene_out.shape[0]) % hidden_size == 0:
+        scene_cond_embed_out_tokens = int(scene_out.shape[0]) // hidden_size
+
+    scene_token_base = _find_state_tensor_by_suffix(state_dict, "scene_token_base")
+    if torch.is_tensor(scene_token_base) and scene_token_base.ndim == 3:
+        num_scene_tokens = int(scene_token_base.shape[1])
+    elif scene_cond_embed_out_tokens > 0:
+        num_scene_tokens = int(scene_cond_embed_out_tokens)
+
+    obj_mat = _find_state_tensor_by_suffix(state_dict, "object_material_embed.0.weight")
+    if torch.is_tensor(obj_mat) and obj_mat.ndim == 2:
+        object_material_dim = int(obj_mat.shape[1])
+
+    return int(num_scene_tokens), int(scene_cond_dim), int(scene_cond_embed_out_tokens), int(object_material_dim)
+
+
+def _add_cond_x_embedder_keys_from_x_embedder(state_dict: dict[str, Any], module: torch.nn.Module) -> int:
+    target_state = module.state_dict()
+    added = 0
+    for key, like in target_state.items():
+        if "cond_x_embedder." not in str(key) or key in state_dict:
+            continue
+        source_key = str(key).replace("cond_x_embedder.", "x_embedder.")
+        source = state_dict.get(source_key, None)
+        if source is None:
+            continue
+        if not torch.is_tensor(source):
+            raise ValueError(f"Expected tensor for checkpoint key {source_key!r}, got {type(source).__name__}")
+        if tuple(source.shape) != tuple(like.shape):
+            raise ValueError(
+                f"Cannot initialize {key!r} from {source_key!r}: shape {tuple(source.shape)} "
+                f"does not match expected {tuple(like.shape)}"
+            )
+        state_dict[key] = source.detach().clone()
+        added += 1
+    return added
+
+
+def _rename_legacy_x_embed_cond_keys(state_dict: dict[str, Any], module: torch.nn.Module) -> int:
+    target_state = module.state_dict()
+    renamed = 0
+    for key in list(state_dict.keys()):
+        key_s = str(key)
+        if "x_embed_cond." not in key_s:
+            continue
+        target_key = key_s.replace("x_embed_cond.", "cond_x_embedder.")
+        value = state_dict.pop(key)
+        target_like = target_state.get(target_key)
+        if target_like is None:
+            continue
+        if not torch.is_tensor(value):
+            raise ValueError(f"Expected tensor for checkpoint key {key_s!r}, got {type(value).__name__}")
+        if tuple(value.shape) != tuple(target_like.shape):
+            raise ValueError(
+                f"Cannot rename {key_s!r} to {target_key!r}: shape {tuple(value.shape)} "
+                f"does not match expected {tuple(target_like.shape)}"
+            )
+        state_dict[target_key] = value
+        renamed += 1
+    return renamed
+
+
 def masked_mse(pred: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
     if pred.shape != gt.shape:
         raise ValueError(f"pred/gt shape mismatch: pred={tuple(pred.shape)} gt={tuple(gt.shape)}")
@@ -841,7 +921,7 @@ def _resolve_amp(device: torch.device, amp: str) -> tuple[bool, Optional[torch.d
 
 
 def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
-    DenoiserMeshVideoMultiObjAltObj,
+    PhysFormerDenoiser,
     Path,
     dict[str, Any],
     DiffusionConfig,
@@ -856,7 +936,8 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
 ]:
     _require_torch_runtime()
     from physformer.diffusion.denoiser import DiffusionConfig
-    from physformer.diffusion.denoiser_spacetemp_vert_multiobj_altobj import DenoiserMeshVideoMultiObjAltObj
+    from physformer.diffusion.physformer_denoiser import PhysFormerDenoiser
+    from physformer.models.physformer import canonical_model_name
 
     ckpt_path = Path(str(args.ckpt)) if str(args.ckpt).strip() else _resolve_default_ckpt(Path(str(args.run_dir)))
     if not ckpt_path.is_file():
@@ -897,6 +978,20 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
     coord_shift = float(train_args.get("coord_shift", 0.0))
     norm_mean, norm_std = _resolve_norm_stats(train_args)
 
+    if bool(args.use_ema) and "ema" in ckpt:
+        print("[CKPT] Loading EMA weights: ckpt['ema']['shadow']", flush=True)
+        state_dict_to_load = dict(ckpt["ema"]["shadow"])
+    else:
+        if bool(args.use_ema):
+            print("[CKPT] Requested EMA but checkpoint has no 'ema'; loading ckpt['model']", flush=True)
+        else:
+            print("[CKPT] Loading raw weights: ckpt['model']", flush=True)
+        state_dict_to_load = dict(ckpt["model"])
+
+    ckpt_num_scene_tokens, ckpt_scene_cond_dim, ckpt_scene_cond_embed_out_tokens, ckpt_object_material_dim = (
+        _infer_conditioning_dims_from_state_dict(state_dict_to_load)
+    )
+
     model_kwargs = {
         "use_rope": bool(train_args.get("use_rope", True)),
         "num_register_tokens": int(train_args.get("num_register_tokens", 16)),
@@ -906,10 +1001,10 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         "proj_drop": float(train_args.get("proj_drop", 0.0)),
         "max_num_objects": int(target_max_num_objects),
         "use_object_id_embed": False,
-        "num_scene_tokens": 0,
-        "scene_cond_dim": 0,
-        "scene_cond_embed_out_tokens": 0,
-        "object_material_dim": 0,
+        "num_scene_tokens": int(ckpt_num_scene_tokens),
+        "scene_cond_dim": int(ckpt_scene_cond_dim),
+        "scene_cond_embed_out_tokens": int(ckpt_scene_cond_embed_out_tokens),
+        "object_material_dim": int(ckpt_object_material_dim),
     }
 
     sampling_method = str(train_args.get("sampling_method", "heun"))
@@ -928,10 +1023,8 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         num_sampling_steps=num_sampling_steps,
     )
 
-    model_name = str(train_args.get("model", "MeshVideoDiT-ST-Vert-B-MultiObj-AltObj"))
-    if model_name.endswith("-MultiObj"):
-        model_name = f"{model_name}-AltObj"
-    model = DenoiserMeshVideoMultiObjAltObj(
+    model_name = canonical_model_name(str(train_args.get("model", "PhysFormer-B")))
+    model = PhysFormerDenoiser(
         model_name=model_name,
         num_frames=int(train_args.get("num_frames", 49)),
         num_vertices=int(train_args.get("num_vertices", 88)),
@@ -940,15 +1033,9 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         diffusion=diff_cfg,
     ).to(device)
 
-    if bool(args.use_ema) and "ema" in ckpt:
-        print("[CKPT] Loading EMA weights: ckpt['ema']['shadow']", flush=True)
-        model.load_state_dict(ckpt["ema"]["shadow"], strict=True)
-    else:
-        if bool(args.use_ema):
-            print("[CKPT] Requested EMA but checkpoint has no 'ema'; loading ckpt['model']", flush=True)
-        else:
-            print("[CKPT] Loading raw weights: ckpt['model']", flush=True)
-        model.load_state_dict(ckpt["model"], strict=True)
+    _rename_legacy_x_embed_cond_keys(state_dict_to_load, model)
+    _add_cond_x_embedder_keys_from_x_embedder(state_dict_to_load, model)
+    model.load_state_dict(state_dict_to_load, strict=True)
     model.eval()
 
     model_pad_object_id = int(getattr(getattr(model, "net", None), "pad_object_id", model_kwargs["max_num_objects"]))
@@ -1074,7 +1161,7 @@ def _run_main(args: argparse.Namespace) -> None:
     use_cond_norm = bool(train_args.get("cond_first_frame_normal", False))
     if use_cond_norm:
         raise ValueError(
-            "This official-demo-only evaluator uses the exported physformer AltObj model, which supports "
+            "This official-demo-only evaluator uses the exported PhysFormer model, which supports "
             "first-frame position/velocity conditioning but not the older normal-conditioned checkpoint path. "
             "Use a non-normal-conditioned checkpoint or re-export the full model package."
         )

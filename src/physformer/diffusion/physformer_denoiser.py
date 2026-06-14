@@ -6,10 +6,11 @@ import torch
 import torch.nn as nn
 
 from .denoiser import DiffusionConfig
-from physformer.models.mesh_video_dit_spacetemp_vert_multiobj_altobj import MeshVideoDiT_ST_Vert_MultiObj_AltObj_models
+from physformer.models.physformer import PHYSFORMER_MODELS
+from physformer.models.physformer import canonical_model_name
 
 
-class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
+class PhysFormerDenoiser(nn.Module):
     """
     Video diffusion denoiser for vertex-tokenized multi-object mesh trajectories.
 
@@ -29,12 +30,13 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
         diffusion: DiffusionConfig,
     ) -> None:
         super().__init__()
-        if model_name not in MeshVideoDiT_ST_Vert_MultiObj_AltObj_models:
+        model_name = canonical_model_name(model_name)
+        if model_name not in PHYSFORMER_MODELS:
             raise ValueError(
-                f"Unknown model_name={model_name}. Available: {sorted(MeshVideoDiT_ST_Vert_MultiObj_AltObj_models)}"
+                f"Unknown model_name={model_name}. Available: {sorted(PHYSFORMER_MODELS)}"
             )
 
-        self.net = MeshVideoDiT_ST_Vert_MultiObj_AltObj_models[model_name](
+        self.net = PHYSFORMER_MODELS[model_name](
             num_frames=num_frames,
             num_vertices=num_vertices,
             num_classes=num_classes,
@@ -379,7 +381,3 @@ class DenoiserMeshVideoSpaceTempVertMultiObjAltObj(nn.Module):
                 z[:, 0:1] = z[:, 0:1] * mask4[:, 0:1].to(dtype=z.dtype)
         maybe_trace(steps, ts[-1].expand(bsz))
         return z, z0
-
-
-# Script-friendly alias.
-DenoiserMeshVideoMultiObjAltObj = DenoiserMeshVideoSpaceTempVertMultiObjAltObj

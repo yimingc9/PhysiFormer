@@ -33,9 +33,9 @@ def _reduce_replicated_register_tokens(reg_rep: torch.Tensor, group_keep: Option
     return out.to(dtype=reg_rep.dtype)
 
 
-class DiTBlockSpaceTempAltObj(nn.Module):
+class PhysFormerBlock(nn.Module):
     """
-    DiT-style transformer block with AdaLN and three attention axes:
+    PhysFormer transformer block with AdaLN and three attention axes:
 
       - Spatial: full attention across all vertices within each frame.
       - Temporal: full attention across frames for each vertex.

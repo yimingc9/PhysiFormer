@@ -21,7 +21,7 @@ _ATTENTION_LOGGED: set[str] = set()
 
 
 def _attention_debug_enabled() -> bool:
-    value = os.environ.get("JMT4D_SDPA_DEBUG", "0").strip().lower()
+    value = os.environ.get("PHYSFORMER_SDPA_DEBUG", os.environ.get("JMT4D_SDPA_DEBUG", "0")).strip().lower()
     return value not in ("", "0", "false", "no", "off")
 
 

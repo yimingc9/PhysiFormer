@@ -8,13 +8,13 @@ import torch.nn as nn
 from torch.utils.checkpoint import checkpoint
 
 from .blocks import FinalLayer
-from .blocks_spacetemp_altobj import DiTBlockSpaceTempAltObj
+from .physformer_blocks import PhysFormerBlock
 from .embeddings import LabelEmbedder, RotaryEmbedding1D, TimestepEmbedder
 from .embeddings_vert import VertexCoordRoPE, VertexRotaryEmbedding
 
 
 @dataclass(frozen=True)
-class MeshVideoDiTSpaceTempVertMultiObjAltObjConfig:
+class PhysFormerConfig:
     num_vertices: int
     num_frames: int
     in_features: int = 3
@@ -42,7 +42,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObjConfig:
     block_attn_pattern: tuple[str, ...] = ("spatial", "temporal", "object", "temporal")
 
 
-class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
+class PhysFormerBackbone(nn.Module):
     """
     Multi-object DiT with a repeated spatial -> temporal -> object -> temporal attention pattern.
 
@@ -51,7 +51,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
     per-frame vertex layout. Additive object-id embeddings are disabled by default.
     """
 
-    def __init__(self, cfg: MeshVideoDiTSpaceTempVertMultiObjAltObjConfig) -> None:
+    def __init__(self, cfg: PhysFormerConfig) -> None:
         super().__init__()
         self.cfg = cfg
         self.num_frames = int(cfg.num_frames)
@@ -97,7 +97,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
             else None
         )
 
-        # Keep the table for checkpoint compatibility even though the AltObj backbone does not add it by default.
+        # Keep the table for checkpoint compatibility even though PhysFormer does not add it by default.
         self.object_id_embed = nn.Embedding(self.max_num_objects + 1, self.hidden_size, padding_idx=self.pad_object_id)
         if not self.use_object_id_embed:
             self.object_id_embed.weight.requires_grad_(False)
@@ -143,7 +143,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
 
         self.blocks = nn.ModuleList(
             [
-                DiTBlockSpaceTempAltObj(
+                PhysFormerBlock(
                     hidden_size=self.hidden_size,
                     num_heads=self.num_heads,
                     attn_axis=self.block_attn_pattern[i % len(self.block_attn_pattern)],
@@ -213,7 +213,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
                     f"object_ids must be (B,F,V)={(bsz, num_frames, num_vertices)}, got {tuple(object_ids.shape)}"
                 )
             if not bool((object_ids == object_ids[:, :1, :]).all().item()):
-                raise ValueError("AltObj object attention expects frame-invariant object_ids across the clip.")
+                raise ValueError("PhysFormer object attention expects frame-invariant object_ids across the clip.")
             obj_ids = object_ids[:, 0, :]
         else:
             raise ValueError(f"object_ids must be (B,V) or (B,F,V), got {tuple(object_ids.shape)}")
@@ -348,7 +348,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
             num_vertices=num_vertices,
         )
         if self.has_object_blocks and object_ids_per_vertex is None:
-            raise ValueError("AltObj attention pattern includes object blocks, so object_ids are required.")
+            raise ValueError("PhysFormer attention pattern includes object blocks, so object_ids are required.")
 
         src_key_padding_mask_spatial = None
         src_key_padding_mask_temporal = None
@@ -569,7 +569,7 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
         if self.cfg.grad_checkpoint and self.training:
             for block in self.blocks:
 
-                def _run(x_in: torch.Tensor, c_in: torch.Tensor, _block: DiTBlockSpaceTempAltObj = block) -> torch.Tensor:
+                def _run(x_in: torch.Tensor, c_in: torch.Tensor, _block: PhysFormerBlock = block) -> torch.Tensor:
                     return _block(
                         x_in,
                         c_in,
@@ -620,26 +620,31 @@ class MeshVideoDiTSpaceTempVertMultiObjAltObj(nn.Module):
         return x
 
 
-def MeshVideoDiT_ST_Vert_MultiObj_AltObj_B(**kwargs) -> MeshVideoDiTSpaceTempVertMultiObjAltObj:
-    return MeshVideoDiTSpaceTempVertMultiObjAltObj(
-        MeshVideoDiTSpaceTempVertMultiObjAltObjConfig(depth=12, hidden_size=768, num_heads=12, **kwargs)
+def PhysFormer_B(**kwargs) -> PhysFormerBackbone:
+    return PhysFormerBackbone(
+        PhysFormerConfig(depth=12, hidden_size=768, num_heads=12, **kwargs)
     )
 
 
-def MeshVideoDiT_ST_Vert_MultiObj_AltObj_L(**kwargs) -> MeshVideoDiTSpaceTempVertMultiObjAltObj:
-    return MeshVideoDiTSpaceTempVertMultiObjAltObj(
-        MeshVideoDiTSpaceTempVertMultiObjAltObjConfig(depth=24, hidden_size=1024, num_heads=16, **kwargs)
+def PhysFormer(**kwargs) -> PhysFormerBackbone:
+    return PhysFormerBackbone(
+        PhysFormerConfig(depth=24, hidden_size=1024, num_heads=16, **kwargs)
     )
 
 
-def MeshVideoDiT_ST_Vert_MultiObj_AltObj_H(**kwargs) -> MeshVideoDiTSpaceTempVertMultiObjAltObj:
-    return MeshVideoDiTSpaceTempVertMultiObjAltObj(
-        MeshVideoDiTSpaceTempVertMultiObjAltObjConfig(depth=32, hidden_size=1280, num_heads=16, **kwargs)
-    )
+def canonical_model_name(model_name: str) -> str:
+    name = str(model_name)
+    if name in PHYSFORMER_MODELS:
+        return name
+    # Pre-publication checkpoints stored internal B/L variant names in args["model"].
+    if name.endswith("-B-MultiObj") or name.endswith("-B-MultiObj-AltObj"):
+        return "PhysFormer-B"
+    if name.endswith("-L-MultiObj-AltObj"):
+        return "PhysFormer"
+    return name
 
 
-MeshVideoDiT_ST_Vert_MultiObj_AltObj_models = {
-    "MeshVideoDiT-ST-Vert-B-MultiObj-AltObj": MeshVideoDiT_ST_Vert_MultiObj_AltObj_B,
-    "MeshVideoDiT-ST-Vert-L-MultiObj-AltObj": MeshVideoDiT_ST_Vert_MultiObj_AltObj_L,
-    "MeshVideoDiT-ST-Vert-H-MultiObj-AltObj": MeshVideoDiT_ST_Vert_MultiObj_AltObj_H,
+PHYSFORMER_MODELS = {
+    "PhysFormer-B": PhysFormer_B,
+    "PhysFormer": PhysFormer,
 }
