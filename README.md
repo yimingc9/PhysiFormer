@@ -54,23 +54,8 @@ pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorc
 # Install remaining requirements, including the prebuilt flash-attn wheel.
 pip install -r requirements.txt
 ```
-
+If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels,
 The copied model prefers external FlashAttention via a prebuilt `flash-attn==2.8.3` wheel:
-
-```text
-https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3%2Bcu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
-```
-
-This wheel matches the Python 3.10, CUDA 12, `torch==2.5.1`, cxx11-ABI-false environment
-above. If `flash-attn` is missing or unsupported for a specific attention call, the model falls
-back to PyTorch scaled-dot-product attention using CUDA flash/memory-efficient SDPA kernels. The
-slow math SDPA fallback is disabled.
-
-To see which backend is used on the first attention call:
-
-```bash
-python run_official_demo_inference.py --attention-debug ...
-```
 
 ## 🤗 Model Access
 
