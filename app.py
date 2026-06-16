@@ -53,7 +53,13 @@ def _timing_summary(log: str) -> str:
     for key, label in fields:
         if key in values:
             lines.append(f"{label}: {values[key]} s")
-    return "\n".join(lines) if lines else "Run a rollout to see timing."
+    if lines:
+        return "\n".join(lines)
+    return (
+        "No timing markers were found in the inference output.\n"
+        "The Space is likely running an older copy of src/physformer/scripts/infer.py; "
+        "push these changes and restart/rebuild the Space."
+    )
 
 
 def ensure_checkpoint() -> str:
