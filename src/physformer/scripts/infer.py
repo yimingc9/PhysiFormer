@@ -1206,6 +1206,7 @@ def build_argparser() -> argparse.ArgumentParser:
 
 @torch.no_grad()
 def main() -> None:
+    main_t0 = time.perf_counter()
     args = build_argparser().parse_args()
     if int(args.num_samples) <= 0:
         raise ValueError(f"--num_samples must be >= 1, got {args.num_samples}")
@@ -1222,7 +1223,10 @@ def main() -> None:
         if args.verbose:
             print(msg, flush=True)
 
+    load_t0 = time.perf_counter()
     ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
+    ckpt_load_s = time.perf_counter() - load_t0
+    print(f"[timing] checkpoint_load_s={ckpt_load_s:.3f}", flush=True)
     train_args = ckpt.get("args", {})
     if str(args.material_mode).strip():
         if not isinstance(train_args, dict):
@@ -1267,6 +1271,20 @@ def main() -> None:
     vertex_counts = load_mesh_vertex_counts(mesh_vertex_count_json)
 
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda":
+        device_index = torch.cuda.current_device()
+        props = torch.cuda.get_device_properties(device_index)
+        print(
+            "[hardware] "
+            f"device={device} "
+            f"name={torch.cuda.get_device_name(device_index)} "
+            f"total_memory_gb={props.total_memory / (1024 ** 3):.1f} "
+            f"capability={props.major}.{props.minor} "
+            f"cuda_visible_devices={os.environ.get('CUDA_VISIBLE_DEVICES', '')}",
+            flush=True,
+        )
+    else:
+        print("[hardware] device=cpu cuda_available=False", flush=True)
     vlog(f"device={device} cuda_available={torch.cuda.is_available()}")
     use_amp = args.amp != "none"
     if device.type == "cpu":
@@ -1416,6 +1434,8 @@ def main() -> None:
             f"missing_keys={bad_missing} unexpected_keys={bad_unexpected}"
         )
     model.eval()
+    model_setup_s = time.perf_counter() - load_t0 - ckpt_load_s
+    print(f"[timing] model_setup_s={model_setup_s:.3f}", flush=True)
 
     infer_num_frames = int(args.infer_num_frames) if int(args.infer_num_frames) > 0 else int(model.net.num_frames)
     infer_num_vertices_default = (
@@ -1499,6 +1519,7 @@ def main() -> None:
         sample_range = tqdm(sample_range, desc="samples", unit="sample")
 
     for i in sample_range:
+        sample_setup_t0 = time.perf_counter()
         sample_dir = sample_dirs[i]
         cond_sample_dir = cond_sample_dirs[i]
         rel_sample_dir = rel_sample_dirs[i]
@@ -1739,6 +1760,8 @@ def main() -> None:
             gen_range = tqdm(gen_range, desc=f"rollout_samples[input={i:03d}]", unit="sample", leave=False)
 
         for repeat_idx in gen_range:
+            sample_setup_s = time.perf_counter() - sample_setup_t0
+            print(f"[timing] sample[{i}].setup_s={sample_setup_s:.3f}", flush=True)
             gen_dir = sample_dir if int(args.num_generations_per_sample) == 1 else os.path.join(sample_dir, f"sample_{repeat_idx:02d}")
             os.makedirs(gen_dir, exist_ok=True)
             out_npz = os.path.join(gen_dir, "vertices.npz")
@@ -1762,8 +1785,18 @@ def main() -> None:
             if device.type == "cuda":
                 torch.cuda.synchronize(device=device)
             t1 = time.perf_counter()
-            vlog(f"sample[{i}] gen[{repeat_idx}] sec={t1 - t0:.3f} x_gen shape={tuple(x_gen.shape)} dtype={x_gen.dtype}")
+            inference_s = t1 - t0
+            print(
+                f"[timing] sample[{i}] gen[{repeat_idx}] inference_model_generate_s={inference_s:.3f}",
+                flush=True,
+            )
+            print(
+                f"[timing] sample[{i}].gen[{repeat_idx}].inference_model_generate_s={inference_s:.3f}",
+                flush=True,
+            )
+            vlog(f"sample[{i}] gen[{repeat_idx}] sec={inference_s:.3f} x_gen shape={tuple(x_gen.shape)} dtype={x_gen.dtype}")
 
+            postprocess_t0 = time.perf_counter()
             x_np_norm = x_gen[0].detach().cpu().numpy().astype(np.float32)  # (F,V,3) (abs or delta depending on ckpt)
             if bool(delta_to_first_frame):
                 # Model predicts deltas relative to the (normalized) first frame positions.
@@ -1792,11 +1825,15 @@ def main() -> None:
                 cond_metadata_path=str(meta_path),
                 conditioned_metadata_source=str(meta_source),
             )
+            postprocess_s = time.perf_counter() - postprocess_t0
+            print(f"[timing] sample[{i}].gen[{repeat_idx}].postprocess_save_npz_s={postprocess_s:.3f}", flush=True)
 
             want_pred_render = bool(args.save_gif or args.save_mp4)
             want_gt_render = bool(args.save_gt_gif or args.save_gt_mp4)
             want_compare_render = bool(args.save_compare_gif or args.save_compare_mp4)
+            render_s = 0.0
             if want_pred_render or want_gt_render or want_compare_render:
+                render_t0 = time.perf_counter()
                 pred_vertices_vis = x_np_denorm[:, : int(scene.total_vertices), :].astype(np.float32, copy=False)
                 pred_frames: list[np.ndarray] = []
                 gt_frames: list[np.ndarray] = []
@@ -1871,6 +1908,9 @@ def main() -> None:
                     out_compare_gif = os.path.join(gen_dir, f"{compare_base}.gif") if args.save_compare_gif else None
                     out_compare_mp4 = os.path.join(gen_dir, f"{compare_base}.mp4") if args.save_compare_mp4 else None
                     _save_animation(compare_frames, out_gif=out_compare_gif, out_mp4=out_compare_mp4, fps=int(args.fps))
+                render_s = time.perf_counter() - render_t0
+            print(f"[timing] sample[{i}].gen[{repeat_idx}].render_encode_s={render_s:.3f}", flush=True)
+    print(f"[timing] engine_total_wall_s={time.perf_counter() - main_t0:.3f}", flush=True)
 
 
 if __name__ == "__main__":
