@@ -1,6 +1,6 @@
-<p align="center">
+<!-- <p align="center">
   <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="20%">
-</p>
+</p> -->
 
 <h1 align="center">PhysFormer: Learning to Simulate Mechanics<br> in World Space</h1>
 
