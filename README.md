@@ -54,7 +54,9 @@ pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorc
 # Install remaining requirements, including the prebuilt flash-attn wheel.
 pip install -r requirements.txt
 ```
-If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels.
+If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels. If no fast
+CUDA attention backend is available, inference continues with a clearly logged math/chunked
+attention fallback; that path is much slower and may use more memory.
 
 ## 🤗 Model Access
 
@@ -123,4 +125,4 @@ Useful eval flags:
 Reported Evaluation Metrics:
 - `mse`: MSE on vertex position trajectory.
 - `rigidity`: per-object Kabsch rigid alignment residual across all frames against frame 0. 
-- `conservation_of_momentum`: system momentum drift compared against GT motion. 
+- `momentum_drift_ratio`: ratio of predicted mean system-momentum drift to GT mean system-momentum drift; values closer to 1 are better.

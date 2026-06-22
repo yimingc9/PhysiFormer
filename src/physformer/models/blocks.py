@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import atexit
+from collections import Counter
+import math
 import os
 from typing import Optional
 
@@ -18,6 +21,9 @@ except Exception as exc:  # pragma: no cover - depends on optional CUDA extensio
 
 
 _ATTENTION_LOGGED: set[str] = set()
+_ATTENTION_BACKEND_COUNTS: Counter[str] = Counter()
+_ATTENTION_BACKEND_EXAMPLES: dict[str, str] = {}
+_ATTENTION_SUMMARY_REGISTERED = False
 
 
 def _attention_debug_enabled() -> bool:
@@ -33,6 +39,44 @@ def _attention_log_once(key: str, msg: str, *, debug_only: bool = False) -> None
     _ATTENTION_LOGGED.add(key)
     rank = os.environ.get("RANK", "0")
     print(f"[attention][rank={rank}] {msg}", flush=True)
+
+
+def _attention_chunk_size() -> int:
+    raw = os.environ.get("PHYSFORMER_ATTENTION_CHUNK_SIZE", "512").strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return 512
+    return max(1, value)
+
+
+def _record_attention_backend(name: str, q: torch.Tensor, *, attn_mask: Optional[torch.Tensor]) -> None:
+    _ATTENTION_BACKEND_COUNTS[str(name)] += 1
+    if str(name) not in _ATTENTION_BACKEND_EXAMPLES:
+        mask_kind = "masked" if attn_mask is not None else "unmasked"
+        _ATTENTION_BACKEND_EXAMPLES[str(name)] = f"{mask_kind} dtype={q.dtype} q={tuple(q.shape)}"
+
+
+def _print_attention_backend_summary() -> None:
+    if not _attention_debug_enabled() or not _ATTENTION_BACKEND_COUNTS:
+        return
+    rank = os.environ.get("RANK", "0")
+    total = sum(_ATTENTION_BACKEND_COUNTS.values())
+    print(f"[attention-summary][rank={rank}] total_calls={total}", flush=True)
+    for name in sorted(_ATTENTION_BACKEND_COUNTS):
+        example = _ATTENTION_BACKEND_EXAMPLES.get(name, "")
+        print(
+            f"[attention-summary][rank={rank}] {name}={_ATTENTION_BACKEND_COUNTS[name]} example=({example})",
+            flush=True,
+        )
+
+
+def _ensure_attention_summary_registered() -> None:
+    global _ATTENTION_SUMMARY_REGISTERED
+    if _ATTENTION_SUMMARY_REGISTERED:
+        return
+    atexit.register(_print_attention_backend_summary)
+    _ATTENTION_SUMMARY_REGISTERED = True
 
 
 def _configure_torch_sdpa() -> None:
@@ -128,25 +172,31 @@ class Attention(nn.Module):
         q = q.contiguous()
         k = k.contiguous()
         v = v.contiguous()
+        if _attention_debug_enabled():
+            _ensure_attention_summary_registered()
 
-        def _raise_fast_sdpa_unavailable(cause: Optional[BaseException] = None) -> None:
+        def _has_sdp_kernel() -> bool:
+            cuda_backend = getattr(torch.backends, "cuda", None)
+            return cuda_backend is not None and hasattr(cuda_backend, "sdp_kernel")
+
+        def _fast_attention_unavailable_detail(cause: Optional[BaseException] = None) -> str:
             detail = (
-                "CUDA fast attention unavailable: this demo requires external flash-attn, "
-                "PyTorch flash SDPA, or PyTorch memory-efficient CUDA SDPA, and exits instead "
-                "of using math/chunked fallback. "
                 f"attention_device={q.device} attention_dtype={q.dtype} attention_shape={tuple(q.shape)}. "
-                "Check that CUDA is available, run with --device cuda --amp bf16 or --amp fp16, "
-                "and use a CUDA PyTorch wheel on a supported NVIDIA GPU."
             )
+            if _flash_attn_func is None:
+                detail += (
+                    " External flash-attn is not importable"
+                    f" ({type(_FLASH_ATTN_IMPORT_ERROR).__name__}: {_FLASH_ATTN_IMPORT_ERROR})."
+                )
             if not q.is_cuda:
                 detail += f" The attention tensor is on {q.device}, not CUDA."
             elif q.dtype not in (torch.float16, torch.bfloat16):
                 detail += " Fast CUDA SDPA requires float16 or bfloat16 attention tensors."
-            elif not hasattr(torch.backends.cuda, "sdp_kernel"):
+            elif not _has_sdp_kernel():
                 detail += " This PyTorch build does not expose torch.backends.cuda.sdp_kernel."
             if cause is None:
-                raise RuntimeError(detail)
-            raise RuntimeError(detail) from cause
+                return detail
+            return f"{detail} Last fast-attention error: {type(cause).__name__}: {cause}"
 
         def _try_sdpa_with_sdp_kernel(*, flash: bool, mem_efficient: bool, math_backend: bool) -> torch.Tensor:
             with torch.backends.cuda.sdp_kernel(
@@ -163,7 +213,7 @@ class Attention(nn.Module):
                 detail = f"{type(_FLASH_ATTN_IMPORT_ERROR).__name__}: {_FLASH_ATTN_IMPORT_ERROR}"
                 _attention_log_once(
                     "external-flash-import-missing",
-                    "External flash-attn is not importable; falling back to PyTorch SDPA. "
+                    "External flash-attn is not importable; falling back to PyTorch SDPA or math/chunked attention. "
                     f"Install the README prebuilt flash-attn wheel if you want the preferred path. ({detail})",
                 )
                 return None
@@ -171,7 +221,7 @@ class Attention(nn.Module):
                 _attention_log_once(
                     "external-flash-mask-fallback",
                     "External flash-attn is installed, but this attention call has a padding mask; "
-                    "using PyTorch SDPA for masked attention.",
+                    "using PyTorch SDPA or math/chunked fallback for masked attention.",
                 )
                 return None
 
@@ -186,22 +236,109 @@ class Attention(nn.Module):
                     "Using external flash-attn as the preferred attention backend "
                     f"(dtype={q.dtype}, q={tuple(q.shape)}).",
                 )
+                _record_attention_backend("external_flash_attn", q, attn_mask=attn_mask)
                 return out.transpose(1, 2).contiguous()
             except Exception as exc:
                 _attention_log_once(
                     "external-flash-runtime-fallback",
                     "External flash-attn was importable but failed for this attention shape; "
-                    "falling back to PyTorch SDPA. "
+                    "falling back to PyTorch SDPA or math/chunked attention. "
                     f"reason={type(exc).__name__}: {exc}",
                 )
                 return None
 
-        if not q.is_cuda or q.dtype not in (torch.float16, torch.bfloat16) or not hasattr(torch.backends.cuda, "sdp_kernel"):
-            _raise_fast_sdpa_unavailable()
+        def _try_math_sdpa() -> torch.Tensor:
+            if _has_sdp_kernel():
+                return _try_sdpa_with_sdp_kernel(flash=False, mem_efficient=False, math_backend=True)
+            return F.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask, dropout_p=dropout_p, is_causal=is_causal
+            )
 
-        out = _try_external_flash_attn()
-        if out is not None:
-            return out
+        def _chunked_math_attention() -> torch.Tensor:
+            seq_len = int(q.shape[-2])
+            chunk_size = _attention_chunk_size()
+            scale = 1.0 / math.sqrt(float(q.shape[-1]))
+            k_t = k.transpose(-2, -1)
+            out_chunks: list[torch.Tensor] = []
+            key_positions = torch.arange(seq_len, device=q.device).view(1, 1, 1, seq_len) if is_causal else None
+
+            for start in range(0, seq_len, chunk_size):
+                end = min(start + chunk_size, seq_len)
+                q_chunk = q[..., start:end, :]
+                scores = torch.matmul(q_chunk, k_t) * scale
+                bool_mask: Optional[torch.Tensor] = None
+
+                if attn_mask is not None:
+                    mask = attn_mask
+                    if mask.shape[-2] == seq_len:
+                        mask = mask[..., start:end, :]
+                    if mask.dtype == torch.bool:
+                        bool_mask = mask
+                        all_masked = ~mask.any(dim=-1, keepdim=True)
+                        scores = scores.masked_fill(~mask, float("-inf"))
+                        scores = scores.masked_fill(all_masked, 0.0)
+                    else:
+                        scores = scores + mask
+
+                causal_mask: Optional[torch.Tensor] = None
+                if key_positions is not None:
+                    query_positions = torch.arange(start, end, device=q.device).view(1, 1, end - start, 1)
+                    causal_mask = key_positions <= query_positions
+                    scores = scores.masked_fill(~causal_mask, float("-inf"))
+
+                weights = torch.softmax(scores.float(), dim=-1).to(dtype=v.dtype)
+                if bool_mask is not None:
+                    weights = weights.masked_fill(~bool_mask, 0.0)
+                if causal_mask is not None:
+                    weights = weights.masked_fill(~causal_mask, 0.0)
+                if dropout_p > 0.0:
+                    weights = F.dropout(weights, p=float(dropout_p), training=True)
+                out_chunks.append(torch.matmul(weights, v))
+
+            return torch.cat(out_chunks, dim=-2).to(dtype=q.dtype)
+
+        def _math_or_chunked_fallback(cause: Optional[BaseException] = None) -> torch.Tensor:
+            detail = _fast_attention_unavailable_detail(cause)
+            _attention_log_once(
+                "math-chunked-fallback-warning",
+                "CUDA fast attention unavailable for this call; using math/chunked attention fallback. "
+                "This is expected to be much slower and may use more memory than external flash-attn, "
+                "PyTorch flash SDPA, or PyTorch memory-efficient CUDA SDPA. "
+                f"{detail}",
+            )
+            try:
+                out = _try_math_sdpa()
+                _attention_log_once(
+                    "pytorch-math-sdpa-active",
+                    "Using PyTorch math SDPA fallback "
+                    f"(dtype={q.dtype}, q={tuple(q.shape)}).",
+                )
+                _record_attention_backend("pytorch_math_sdpa", q, attn_mask=attn_mask)
+                return out
+            except Exception as math_exc:
+                if q.is_cuda:
+                    torch.cuda.empty_cache()
+                _attention_log_once(
+                    "chunked-math-attention-active",
+                    "PyTorch math SDPA also failed; using chunked manual attention fallback "
+                    f"(chunk_size={_attention_chunk_size()}, dtype={q.dtype}, q={tuple(q.shape)}). "
+                    f"reason={type(math_exc).__name__}: {math_exc}",
+                )
+                out = _chunked_math_attention()
+                _record_attention_backend("chunked_math_attention", q, attn_mask=attn_mask)
+                return out
+
+        external_flash_eligible = q.is_cuda and q.dtype in (torch.float16, torch.bfloat16)
+        if external_flash_eligible:
+            out = _try_external_flash_attn()
+            if out is not None:
+                return out
+
+        torch_fast_eligible = (
+            q.is_cuda and q.dtype in (torch.float16, torch.bfloat16) and _has_sdp_kernel()
+        )
+        if not torch_fast_eligible:
+            return _math_or_chunked_fallback()
 
         try:
             if _attention_debug_enabled():
@@ -212,6 +349,7 @@ class Attention(nn.Module):
                         "Using PyTorch flash SDPA fallback "
                         f"(dtype={q.dtype}, q={tuple(q.shape)}).",
                     )
+                    _record_attention_backend("pytorch_flash_sdpa", q, attn_mask=attn_mask)
                     return out
                 except Exception:
                     out = _try_sdpa_with_sdp_kernel(flash=False, mem_efficient=True, math_backend=False)
@@ -220,16 +358,19 @@ class Attention(nn.Module):
                         "Using PyTorch memory-efficient SDPA fallback "
                         f"(PyTorch flash SDPA was unavailable; dtype={q.dtype}, q={tuple(q.shape)}).",
                     )
+                    _record_attention_backend("pytorch_mem_efficient_sdpa", q, attn_mask=attn_mask)
                     return out
 
             _attention_log_once(
                 "pytorch-sdpa-fallback",
                 "Using PyTorch SDPA fallback with flash and memory-efficient CUDA kernels enabled "
-                "(math fallback disabled). Pass --attention-debug to print the exact PyTorch SDPA backend.",
+                "(math fallback disabled unless fast SDPA fails). Pass --attention-debug to print the exact PyTorch SDPA backend.",
             )
-            return _try_sdpa_with_sdp_kernel(flash=True, mem_efficient=True, math_backend=False)
+            out = _try_sdpa_with_sdp_kernel(flash=True, mem_efficient=True, math_backend=False)
+            _record_attention_backend("pytorch_fast_sdpa", q, attn_mask=attn_mask)
+            return out
         except Exception as exc:
-            _raise_fast_sdpa_unavailable(exc)
+            return _math_or_chunked_fallback(exc)
 
     def forward(self, x: torch.Tensor, rope, src_key_padding_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         bsz, seq_len, dim = x.shape

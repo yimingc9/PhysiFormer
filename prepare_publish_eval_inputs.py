@@ -197,6 +197,13 @@ def _publish_metadata(sample_name: str, meta: dict[str, Any], object_masses: np.
             "mode": meta.get("mode"),
         },
         "objects": objects,
+        "evaluation_conventions": {
+            "object_masses": "Copied into the precomputed NPZ as object_masses and used for system momentum.",
+            "momentum_drift_ratio": (
+                "eval_publish_losses.py reports mean_i mean_t ||P_pred_i(t)-P_pred_i(0)||_2 "
+                "/ mean_i mean_t ||P_gt_i(t)-P_gt_i(0)||_2 over frames 1..momentum_last_frame."
+            ),
+        },
     }
 
 

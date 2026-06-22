@@ -685,22 +685,21 @@ def _system_momentum(
 
 
 @dataclass(frozen=True)
-class MomentumMetrics:
-    value: float
-    per_frame_values: list[float]
+class MomentumDriftMetrics:
+    momentum_drift_ratio: float
+    gt_per_frame_drift_norms: list[float]
+    pred_per_frame_drift_norms: list[float]
     gt_initial_momentum: list[float]
     pred_initial_momentum: list[float]
     gt_initial_momentum_norm_sq: float
     pred_initial_momentum_norm_sq: float
-    denominator: float
-    denominator_was_clamped: bool
-    gt_drift_norm_mean: float
-    pred_drift_norm_mean: float
-    drift_error_norm_mean: float
-    drift_error_norm_max: float
+    gt_momentum_drift_norm_mean: float
+    pred_momentum_drift_norm_mean: float
+    gt_drift_denominator: float
+    gt_drift_denominator_was_clamped: bool
 
 
-def conservation_of_momentum_loss(
+def momentum_drift_ratio(
     pred_vertices: np.ndarray,
     gt_vertices: np.ndarray,
     mask: np.ndarray,
@@ -712,7 +711,7 @@ def conservation_of_momentum_loss(
     velocity_scheme: str,
     last_frame: int,
     eps: float,
-) -> MomentumMetrics:
+) -> MomentumDriftMetrics:
     gt_p = _system_momentum(
         gt_vertices,
         mask,
@@ -737,25 +736,23 @@ def conservation_of_momentum_loss(
     idx = np.arange(1, f_last + 1, dtype=np.int64)
     gt_delta = gt_p[idx] - gt_p[0][None, :]
     pred_delta = pred_p[idx] - pred_p[0][None, :]
-    err = pred_delta - gt_delta
-    numerator = np.sum(err * err, axis=1)
-    gt_p0_norm_sq = float(np.dot(gt_p[0], gt_p[0]))
-    denom = max(gt_p0_norm_sq, float(eps))
-    per_frame = numerator / denom
-    err_norm = np.linalg.norm(err, axis=1)
-    return MomentumMetrics(
-        value=float(per_frame.mean()),
-        per_frame_values=[float(x) for x in per_frame.tolist()],
+    gt_drift_norm = np.linalg.norm(gt_delta, axis=1)
+    pred_drift_norm = np.linalg.norm(pred_delta, axis=1)
+    gt_drift_norm_mean = float(gt_drift_norm.mean())
+    pred_drift_norm_mean = float(pred_drift_norm.mean())
+    denom = max(gt_drift_norm_mean, float(eps))
+    return MomentumDriftMetrics(
+        momentum_drift_ratio=float(pred_drift_norm_mean / denom),
+        gt_per_frame_drift_norms=[float(x) for x in gt_drift_norm.tolist()],
+        pred_per_frame_drift_norms=[float(x) for x in pred_drift_norm.tolist()],
         gt_initial_momentum=[float(x) for x in gt_p[0].tolist()],
         pred_initial_momentum=[float(x) for x in pred_p[0].tolist()],
-        gt_initial_momentum_norm_sq=float(gt_p0_norm_sq),
+        gt_initial_momentum_norm_sq=float(np.dot(gt_p[0], gt_p[0])),
         pred_initial_momentum_norm_sq=float(np.dot(pred_p[0], pred_p[0])),
-        denominator=float(denom),
-        denominator_was_clamped=bool(gt_p0_norm_sq < float(eps)),
-        gt_drift_norm_mean=float(np.linalg.norm(gt_delta, axis=1).mean()),
-        pred_drift_norm_mean=float(np.linalg.norm(pred_delta, axis=1).mean()),
-        drift_error_norm_mean=float(err_norm.mean()),
-        drift_error_norm_max=float(err_norm.max()),
+        gt_momentum_drift_norm_mean=float(gt_drift_norm_mean),
+        pred_momentum_drift_norm_mean=float(pred_drift_norm_mean),
+        gt_drift_denominator=float(denom),
+        gt_drift_denominator_was_clamped=bool(gt_drift_norm_mean < float(eps)),
     )
 
 
@@ -764,7 +761,8 @@ class PerGenerationLosses:
     generation_index: int
     mse: float
     rigidity: float
-    conservation_of_momentum: float
+    momentum_drift_ratio: float
+    pred_momentum_drift_norm_mean: float
 
 
 @dataclass(frozen=True)
@@ -784,17 +782,15 @@ class PerSampleLosses:
     rigidity_std: float
     rigidity_min: float
     rigidity_max: float
-    conservation_of_momentum_mean: float
-    conservation_of_momentum_std: float
-    conservation_of_momentum_min: float
-    conservation_of_momentum_max: float
-    momentum_denominator: float
-    momentum_denominator_was_clamped: bool
+    momentum_drift_ratio_mean: float
+    momentum_drift_ratio_std: float
+    momentum_drift_ratio_min: float
+    momentum_drift_ratio_max: float
     gt_initial_momentum_norm_sq: float
-    gt_drift_norm_mean: float
-    pred_drift_norm_mean_mean: float
-    momentum_drift_error_norm_mean: float
-    momentum_drift_error_norm_max_mean: float
+    gt_momentum_drift_norm_mean: float
+    pred_momentum_drift_norm_mean_mean: float
+    gt_drift_denominator: float
+    gt_drift_denominator_was_clamped: bool
 
 
 def _finite_stats(values: list[float] | np.ndarray) -> tuple[float, float, float, float]:
@@ -811,12 +807,74 @@ def _nanmean(values: list[float] | np.ndarray) -> float:
     return float(x.mean()) if x.size else float("nan")
 
 
+def _nanstd(values: list[float] | np.ndarray, *, ddof: int = 0) -> float:
+    x = np.asarray(values, dtype=np.float64)
+    x = x[np.isfinite(x)]
+    if x.size == 0 or x.size <= int(ddof):
+        return float("nan")
+    return float(x.std(ddof=int(ddof)))
+
+
+def _global_momentum_drift_summary(rows: list[PerSampleLosses], *, eps: float) -> dict[str, Any]:
+    gt_mean = _nanmean([r.gt_momentum_drift_norm_mean for r in rows])
+    denom = max(float(gt_mean), float(eps)) if math.isfinite(float(gt_mean)) else float("nan")
+    denom_clamped = bool(math.isfinite(float(gt_mean)) and float(gt_mean) < float(eps))
+
+    max_generations = max((len(r.losses) for r in rows), default=0)
+    pred_by_generation: list[float] = []
+    ratio_by_generation: list[float] = []
+    for gen_idx in range(max_generations):
+        pred_mean = _nanmean(
+            [
+                r.losses[gen_idx].pred_momentum_drift_norm_mean
+                for r in rows
+                if gen_idx < len(r.losses)
+            ]
+        )
+        pred_by_generation.append(float(pred_mean))
+        ratio = float(pred_mean / denom) if math.isfinite(pred_mean) and math.isfinite(denom) else float("nan")
+        ratio_by_generation.append(ratio)
+
+    best_pred_mean = _nanmean(
+        [
+            min(
+                (
+                    loss.pred_momentum_drift_norm_mean
+                    for loss in r.losses
+                    if math.isfinite(float(loss.pred_momentum_drift_norm_mean))
+                ),
+                default=float("nan"),
+            )
+            for r in rows
+        ]
+    )
+    best_ratio = (
+        float(best_pred_mean / denom)
+        if math.isfinite(float(best_pred_mean)) and math.isfinite(float(denom))
+        else float("nan")
+    )
+
+    return {
+        "gt_momentum_drift_norm_mean": float(gt_mean),
+        "pred_momentum_drift_norm_mean_by_generation": pred_by_generation,
+        "momentum_drift_ratio_by_generation": ratio_by_generation,
+        "momentum_drift_ratio": ratio_by_generation[0] if ratio_by_generation else float("nan"),
+        "momentum_drift_ratio_first_generation": ratio_by_generation[0] if ratio_by_generation else float("nan"),
+        "momentum_drift_ratio_mean_over_generations": _nanmean(ratio_by_generation),
+        "momentum_drift_ratio_std_across_generations": _nanstd(ratio_by_generation, ddof=1),
+        "pred_momentum_drift_norm_mean_best_of_generations": float(best_pred_mean),
+        "momentum_drift_ratio_best_of_generations": float(best_ratio),
+        "global_momentum_drift_denominator": float(denom),
+        "global_momentum_drift_denominator_was_clamped": bool(denom_clamped),
+    }
+
+
 def _build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description=(
             "Publication evaluator for PhysFormer vertex-precomputed multi-object checkpoints. "
             "Loads each conditioning sample once and evaluates MSE, Kabsch rigidity loss, "
-            "and conservation-of-momentum drift loss on the same generated rollouts."
+            "and momentum drift ratio on the same generated rollouts."
         )
     )
     p.add_argument(
@@ -896,9 +954,17 @@ def _build_argparser() -> argparse.ArgumentParser:
         "--momentum_last_frame",
         type=int,
         default=48,
-        help="Momentum loss is averaged over frames 1..N inclusive, clipped to available frames.",
+        help=(
+            "Momentum drift ratio uses frames 1..N inclusive against frame 0, "
+            "clipped to available frames."
+        ),
     )
-    p.add_argument("--momentum_eps", type=float, default=1e-12)
+    p.add_argument(
+        "--momentum_eps",
+        type=float,
+        default=1e-12,
+        help="Small clamp only for per-sample diagnostic ratios when GT drift is zero.",
+    )
 
     p.add_argument("--out_json", type=str, required=True, help="Publication JSON report path.")
     p.add_argument("--out_tsv", type=str, default="", help="Optional compact per-sample TSV path.")
@@ -1097,10 +1163,11 @@ def _write_tsv(path: Path, rows: list[PerSampleLosses]) -> None:
         "mse_std",
         "rigidity_mean",
         "rigidity_std",
-        "conservation_of_momentum_mean",
-        "conservation_of_momentum_std",
-        "momentum_denominator",
-        "momentum_denominator_was_clamped",
+        "momentum_drift_ratio_mean",
+        "momentum_drift_ratio_std",
+        "gt_momentum_drift_norm_mean",
+        "pred_momentum_drift_norm_mean_mean",
+        "gt_drift_denominator_was_clamped",
     ]
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
@@ -1268,13 +1335,11 @@ def _run_main(args: argparse.Namespace) -> None:
         labels = torch.zeros((1,), device=device, dtype=torch.long)
 
         generation_losses: list[PerGenerationLosses] = []
-        momentum_denominator = float("nan")
-        momentum_denominator_was_clamped = False
         gt_initial_momentum_norm_sq = float("nan")
-        gt_drift_norm_mean = float("nan")
-        pred_drift_norm_means: list[float] = []
-        momentum_drift_error_norm_means: list[float] = []
-        momentum_drift_error_norm_maxes: list[float] = []
+        gt_momentum_drift_norm_mean = float("nan")
+        gt_drift_denominator = float("nan")
+        gt_drift_denominator_was_clamped = False
+        pred_momentum_drift_norm_means: list[float] = []
 
         for gen_idx in range(int(args.num_generations)):
             with torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
@@ -1305,7 +1370,7 @@ def _run_main(args: argparse.Namespace) -> None:
                 pad_object_id=int(model_pad_object_id),
                 last_frame=int(args.rigidity_last_frame),
             )
-            momentum = conservation_of_momentum_loss(
+            momentum = momentum_drift_ratio(
                 x_gen_raw[0].detach().cpu().numpy().astype(np.float32, copy=False),
                 gt_raw,
                 mask_f,
@@ -1317,26 +1382,25 @@ def _run_main(args: argparse.Namespace) -> None:
                 last_frame=int(args.momentum_last_frame),
                 eps=float(args.momentum_eps),
             )
-            momentum_denominator = float(momentum.denominator)
-            momentum_denominator_was_clamped = bool(momentum.denominator_was_clamped)
             gt_initial_momentum_norm_sq = float(momentum.gt_initial_momentum_norm_sq)
-            gt_drift_norm_mean = float(momentum.gt_drift_norm_mean)
-            pred_drift_norm_means.append(float(momentum.pred_drift_norm_mean))
-            momentum_drift_error_norm_means.append(float(momentum.drift_error_norm_mean))
-            momentum_drift_error_norm_maxes.append(float(momentum.drift_error_norm_max))
+            gt_momentum_drift_norm_mean = float(momentum.gt_momentum_drift_norm_mean)
+            gt_drift_denominator = float(momentum.gt_drift_denominator)
+            gt_drift_denominator_was_clamped = bool(momentum.gt_drift_denominator_was_clamped)
+            pred_momentum_drift_norm_means.append(float(momentum.pred_momentum_drift_norm_mean))
             generation_losses.append(
                 PerGenerationLosses(
                     generation_index=int(gen_idx),
                     mse=mse,
                     rigidity=rigidity,
-                    conservation_of_momentum=float(momentum.value),
+                    momentum_drift_ratio=float(momentum.momentum_drift_ratio),
+                    pred_momentum_drift_norm_mean=float(momentum.pred_momentum_drift_norm_mean),
                 )
             )
 
         mse_mean, mse_std, mse_min, mse_max = _finite_stats([x.mse for x in generation_losses])
         rigidity_mean, rigidity_std, rigidity_min, rigidity_max = _finite_stats([x.rigidity for x in generation_losses])
-        momentum_mean, momentum_std, momentum_min, momentum_max = _finite_stats(
-            [x.conservation_of_momentum for x in generation_losses]
+        momentum_ratio_mean, momentum_ratio_std, momentum_ratio_min, momentum_ratio_max = _finite_stats(
+            [x.momentum_drift_ratio for x in generation_losses]
         )
 
         result = PerSampleLosses(
@@ -1355,17 +1419,15 @@ def _run_main(args: argparse.Namespace) -> None:
             rigidity_std=rigidity_std,
             rigidity_min=rigidity_min,
             rigidity_max=rigidity_max,
-            conservation_of_momentum_mean=momentum_mean,
-            conservation_of_momentum_std=momentum_std,
-            conservation_of_momentum_min=momentum_min,
-            conservation_of_momentum_max=momentum_max,
-            momentum_denominator=float(momentum_denominator),
-            momentum_denominator_was_clamped=bool(momentum_denominator_was_clamped),
+            momentum_drift_ratio_mean=momentum_ratio_mean,
+            momentum_drift_ratio_std=momentum_ratio_std,
+            momentum_drift_ratio_min=momentum_ratio_min,
+            momentum_drift_ratio_max=momentum_ratio_max,
             gt_initial_momentum_norm_sq=float(gt_initial_momentum_norm_sq),
-            gt_drift_norm_mean=float(gt_drift_norm_mean),
-            pred_drift_norm_mean_mean=_nanmean(pred_drift_norm_means),
-            momentum_drift_error_norm_mean=_nanmean(momentum_drift_error_norm_means),
-            momentum_drift_error_norm_max_mean=_nanmean(momentum_drift_error_norm_maxes),
+            gt_momentum_drift_norm_mean=float(gt_momentum_drift_norm_mean),
+            pred_momentum_drift_norm_mean_mean=_nanmean(pred_momentum_drift_norm_means),
+            gt_drift_denominator=float(gt_drift_denominator),
+            gt_drift_denominator_was_clamped=bool(gt_drift_denominator_was_clamped),
         )
         results.append(result)
 
@@ -1374,20 +1436,28 @@ def _run_main(args: argparse.Namespace) -> None:
                 f"{selector} objects={num_objects} presentV={num_present_vertices} "
                 f"mse={mse_mean:.6g}+/-{mse_std:.6g} "
                 f"rigidity={rigidity_mean:.6g}+/-{rigidity_std:.6g} "
-                f"momentum={momentum_mean:.6g}+/-{momentum_std:.6g}",
+                f"momentum_drift_ratio={momentum_ratio_mean:.6g}+/-{momentum_ratio_std:.6g}",
                 flush=True,
             )
 
     if volume_cache_path:
         _write_mesh_volume_cache_json(volume_cache_path, volume_cache)
 
+    momentum_summary = _global_momentum_drift_summary(results, eps=float(args.momentum_eps))
     summary = {
         "metric": "physformer_publication_losses",
         "definitions": {
             "mse": "masked mean squared error over generated and ground-truth raw vertex positions",
             "rigidity": "mean Kabsch residual per object over frames 1..rigidity_last_frame against frame 0",
-            "conservation_of_momentum": (
-                "mean_t ||(P_hat_t-P_hat_0) - (P_t-P_0)||_2^2 / max(||P_0||_2^2, momentum_eps)"
+            "momentum_drift_ratio": (
+                "For each generation g: mean_i mean_t ||P_pred_{i,g}(t)-P_pred_{i,g}(0)||_2 "
+                "/ mean_i mean_t ||P_gt_i(t)-P_gt_i(0)||_2, with t=1..momentum_last_frame. "
+                "This matches the mean-drift ratio used for momentum_drift_ratio_by_generation_from_npz.json."
+            ),
+            "per_sample_momentum_drift_ratio": (
+                "Diagnostic only: for one sample and one generation, pred_momentum_drift_norm_mean "
+                "/ max(gt_momentum_drift_norm_mean, momentum_eps). The reported aggregate uses "
+                "the global ratio above, not the mean of these per-sample ratios."
             ),
         },
         "source_code": {
@@ -1425,14 +1495,11 @@ def _run_main(args: argparse.Namespace) -> None:
         "mse_std_mean": _nanmean([r.mse_std for r in results]),
         "rigidity_mean": _nanmean([r.rigidity_mean for r in results]),
         "rigidity_std_mean": _nanmean([r.rigidity_std for r in results]),
-        "conservation_of_momentum_mean": _nanmean([r.conservation_of_momentum_mean for r in results]),
-        "conservation_of_momentum_std_mean": _nanmean([r.conservation_of_momentum_std for r in results]),
-        "momentum_denominator_clamped_count": int(sum(r.momentum_denominator_was_clamped for r in results)),
         "gt_initial_momentum_norm_sq_mean": _nanmean([r.gt_initial_momentum_norm_sq for r in results]),
-        "gt_drift_norm_mean": _nanmean([r.gt_drift_norm_mean for r in results]),
-        "pred_drift_norm_mean": _nanmean([r.pred_drift_norm_mean_mean for r in results]),
-        "momentum_drift_error_norm_mean": _nanmean([r.momentum_drift_error_norm_mean for r in results]),
-        "momentum_drift_error_norm_max_mean": _nanmean([r.momentum_drift_error_norm_max_mean for r in results]),
+        "gt_drift_denominator_clamped_count": int(sum(r.gt_drift_denominator_was_clamped for r in results)),
+        "per_sample_momentum_drift_ratio_mean": _nanmean([r.momentum_drift_ratio_mean for r in results]),
+        "per_sample_momentum_drift_ratio_std_mean": _nanmean([r.momentum_drift_ratio_std for r in results]),
+        **momentum_summary,
     }
 
     report: dict[str, Any] = {
