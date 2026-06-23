@@ -28,7 +28,7 @@
     width="640">
 </p>
 
-PhysiFormer (pronouced 🫧fizzy🫧former) is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
+PhysiFormer (pronouced 🫧fizzy🫧former) is a unified diffusion transformer that predicts physically plausible 3D object motion directly
 in world coordinates for rigid and elastic materials. Rather than predicting future frames in
 pixel space or rolling out next-step system states autoregressively, PhysiFormer models motion as
 full-trajectory coordinate diffusion: given initial per-vertex positions, velocities, and material
