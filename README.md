@@ -19,7 +19,7 @@
 
 <p align="center">
   <img
-    src="[https://github.com/user-attachments/assets/4e5308a2-45ee-4a43-8337-2b51916cb3a0](https://github.com/user-attachments/assets/99423b31-6989-4597-bb33-2c21fc033aa1)"
+    src="https://github.com/user-attachments/assets/99423b31-6989-4597-bb33-2c21fc033aa1"
     alt="physiformer teaser"
     width="640">
 </p>
