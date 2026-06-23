@@ -20,9 +20,10 @@
   </a>
 </p>
 
+
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/d26832ed-cbb2-4518-8747-a6d78abe5509"
+    src="https://github.com/user-attachments/assets/9da40717-32df-4a9e-87cc-aea28fdfbbfa"
     alt="physiformer teaser"
     width="640">
 </p>
