@@ -259,7 +259,7 @@ def _append_optional(cmd: list[str], flag: str, value: object | None) -> None:
 
 def build_engine_command(args: argparse.Namespace, samples: Sequence[DemoSample], forward_args: Sequence[str]) -> list[str]:
     code_root = _code_root()
-    engine = code_root / "src" / "physformer" / "scripts" / "infer.py"
+    engine = code_root / "src" / "physiformer" / "scripts" / "infer.py"
     work_root = code_root / ".inference_work"
     cond_list = work_root / "cond_sample_dirs.txt"
     conditioned_metadata = work_root / "conditioned_metadata.jsonl"
@@ -357,7 +357,7 @@ def _format_command(cmd: Sequence[str]) -> str:
 
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Run PhysFormer inference on every official-demo sample.",
+        description="Run PhysiFormer inference on every official-demo sample.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     p.add_argument("--demo-root", type=Path, default=_default_demo_root())
@@ -432,7 +432,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error(
                 "Checkpoint is missing. Download it first and place it at "
                 f"{DEFAULT_CHECKPOINT}. For example:\n"
-                "  huggingface-cli download yslan/physformer checkpoint-best.pt --local-dir checkpoints\n"
+                "  huggingface-cli download yslan/physiformer checkpoint-best.pt --local-dir checkpoints\n"
                 "Or pass a checkpoint explicitly with --checkpoint /path/to/checkpoint.pt."
             )
         parser.error(f"--checkpoint is not a file: {args.checkpoint}")
@@ -459,7 +459,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     env["PYTHONPATH"] = src_path + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     env.setdefault("MPLCONFIGDIR", str(_code_root() / ".inference_work" / "matplotlib"))
     if args.attention_debug:
-        env["PHYSFORMER_SDPA_DEBUG"] = "1"
+        env["PHYSIFORMER_SDPA_DEBUG"] = "1"
     _run_with_log(cmd, env=env, cwd=_code_root(), log_path=_code_root() / ".inference_work" / "inference.log")
     return 0
 

@@ -1,4 +1,4 @@
-"""Publication launcher for the PhysFormer official demo inference package."""
+"""Publication launcher for the PhysiFormer official demo inference package."""
 
 __all__ = ["__version__"]
 

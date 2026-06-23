@@ -6,11 +6,11 @@ import torch
 import torch.nn as nn
 
 from .denoiser import DiffusionConfig
-from physformer.models.physformer import PHYSFORMER_MODELS
-from physformer.models.physformer import canonical_model_name
+from physiformer.models.physiformer import PHYSIFORMER_MODELS
+from physiformer.models.physiformer import canonical_model_name
 
 
-class PhysFormerDenoiser(nn.Module):
+class PhysiFormerDenoiser(nn.Module):
     """
     Video diffusion denoiser for vertex-tokenized multi-object mesh trajectories.
 
@@ -31,12 +31,12 @@ class PhysFormerDenoiser(nn.Module):
     ) -> None:
         super().__init__()
         model_name = canonical_model_name(model_name)
-        if model_name not in PHYSFORMER_MODELS:
+        if model_name not in PHYSIFORMER_MODELS:
             raise ValueError(
-                f"Unknown model_name={model_name}. Available: {sorted(PHYSFORMER_MODELS)}"
+                f"Unknown model_name={model_name}. Available: {sorted(PHYSIFORMER_MODELS)}"
             )
 
-        self.net = PHYSFORMER_MODELS[model_name](
+        self.net = PHYSIFORMER_MODELS[model_name](
             num_frames=num_frames,
             num_vertices=num_vertices,
             num_classes=num_classes,

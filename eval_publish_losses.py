@@ -34,7 +34,7 @@ _SRC_ROOT = _CODE_ROOT / "src"
 if str(_SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(_SRC_ROOT))
 
-from physformer.data.obj_io import load_obj_vertices_faces
+from physiformer.data.obj_io import load_obj_vertices_faces
 def _require_torch_runtime() -> None:
     if torch is None:
         raise RuntimeError(
@@ -872,7 +872,7 @@ def _global_momentum_drift_summary(rows: list[PerSampleLosses], *, eps: float) -
 def _build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description=(
-            "Publication evaluator for PhysFormer vertex-precomputed multi-object checkpoints. "
+            "Publication evaluator for PhysiFormer vertex-precomputed multi-object checkpoints. "
             "Loads each conditioning sample once and evaluates MSE, Kabsch rigidity loss, "
             "and momentum drift ratio on the same generated rollouts."
         )
@@ -987,7 +987,7 @@ def _resolve_amp(device: torch.device, amp: str) -> tuple[bool, Optional[torch.d
 
 
 def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
-    PhysFormerDenoiser,
+    PhysiFormerDenoiser,
     Path,
     dict[str, Any],
     DiffusionConfig,
@@ -1001,9 +1001,9 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
     Optional[torch.dtype],
 ]:
     _require_torch_runtime()
-    from physformer.diffusion.denoiser import DiffusionConfig
-    from physformer.diffusion.physformer_denoiser import PhysFormerDenoiser
-    from physformer.models.physformer import canonical_model_name
+    from physiformer.diffusion.denoiser import DiffusionConfig
+    from physiformer.diffusion.physiformer_denoiser import PhysiFormerDenoiser
+    from physiformer.models.physiformer import canonical_model_name
 
     ckpt_path = Path(str(args.ckpt)) if str(args.ckpt).strip() else _resolve_default_ckpt(Path(str(args.run_dir)))
     if not ckpt_path.is_file():
@@ -1025,7 +1025,7 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         )
 
     if target_max_num_objects > ckpt_max_num_objects:
-        init_std = float(os.environ.get("PHYSFORMER_OBJ_EMBED_INIT_STD", "0.02"))
+        init_std = float(os.environ.get("PHYSIFORMER_OBJ_EMBED_INIT_STD", "0.02"))
         if _maybe_expand_ckpt(ckpt, target_max_num_objects=target_max_num_objects, init_std=init_std):
             print(
                 f"[HACK] Expanded object_id_embed rows: {ckpt_max_num_objects} -> {target_max_num_objects} "
@@ -1089,8 +1089,8 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         num_sampling_steps=num_sampling_steps,
     )
 
-    model_name = canonical_model_name(str(train_args.get("model", "PhysFormer-B")))
-    model = PhysFormerDenoiser(
+    model_name = canonical_model_name(str(train_args.get("model", "PhysiFormer-B")))
+    model = PhysiFormerDenoiser(
         model_name=model_name,
         num_frames=int(train_args.get("num_frames", 49)),
         num_vertices=int(train_args.get("num_vertices", 88)),
@@ -1228,7 +1228,7 @@ def _run_main(args: argparse.Namespace) -> None:
     use_cond_norm = bool(train_args.get("cond_first_frame_normal", False))
     if use_cond_norm:
         raise ValueError(
-            "This official-demo-only evaluator uses the exported PhysFormer model, which supports "
+            "This official-demo-only evaluator uses the exported PhysiFormer model, which supports "
             "first-frame position/velocity conditioning but not the older normal-conditioned checkpoint path. "
             "Use a non-normal-conditioned checkpoint or re-export the full model package."
         )
@@ -1445,7 +1445,7 @@ def _run_main(args: argparse.Namespace) -> None:
 
     momentum_summary = _global_momentum_drift_summary(results, eps=float(args.momentum_eps))
     summary = {
-        "metric": "physformer_publication_losses",
+        "metric": "physiformer_publication_losses",
         "definitions": {
             "mse": "masked mean squared error over generated and ground-truth raw vertex positions",
             "rigidity": "mean Kabsch residual per object over frames 1..rigidity_last_frame against frame 0",

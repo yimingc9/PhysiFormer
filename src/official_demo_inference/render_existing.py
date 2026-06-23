@@ -27,8 +27,8 @@ except Exception:
 from official_demo_inference.paths import code_root as _code_root
 from official_demo_inference.paths import default_demo_root as _default_demo_root
 from official_demo_inference.paths import default_vertex_count_json as _default_vertex_count_json
-from physformer.data.multiobj_utils_multiobj import load_mesh_vertex_counts, scene_info_from_metadata
-from physformer.data.obj_io import load_obj_vertices_faces
+from physiformer.data.multiobj_utils_multiobj import load_mesh_vertex_counts, scene_info_from_metadata
+from physiformer.data.obj_io import load_obj_vertices_faces
 
 
 EXCLUDED_DIR_NAMES = {"code", ".inference_work", "__pycache__"}

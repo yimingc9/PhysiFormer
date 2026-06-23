@@ -57,7 +57,7 @@ def _timing_summary(log: str) -> str:
         return "\n".join(lines)
     return (
         "No timing markers were found in the inference output.\n"
-        "The Space is likely running an older copy of src/physformer/scripts/infer.py; "
+        "The Space is likely running an older copy of src/physiformer/scripts/infer.py; "
         "push these changes and restart/rebuild the Space."
     )
 
@@ -86,7 +86,7 @@ def _command_for_example(example: str, sampling_steps: int) -> list[str]:
         "--device",
         "cuda",
         "--amp",
-        os.environ.get("PHYSFORMER_AMP", "bf16"),
+        os.environ.get("PHYSIFORMER_AMP", "bf16"),
         "--overwrite",
         "--save-mp4",
         "--verbose",
@@ -170,12 +170,12 @@ def run_inference(example: str, sampling_steps: int, setup_log: str) -> tuple[st
     return str(mp4), summary, _tail(final_log)
 
 
-with gr.Blocks(title="PhysFormer") as demo:
+with gr.Blocks(title="PhysiFormer") as demo:
     gr.Markdown(
         """
-        # PhysFormer Minimal ZeroGPU Demo
+        # PhysiFormer Minimal ZeroGPU Demo
 
-        Runs one small PhysFormer rollout and returns the rendered mesh trajectory.
+        Runs one small PhysiFormer rollout and returns the rendered mesh trajectory.
         """
     )
     with gr.Row():

@@ -36,17 +36,17 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-from physformer.data.multiobj_utils_multiobj import (
+from physiformer.data.multiobj_utils_multiobj import (
     default_vertex_count_json_path,
     load_mesh_vertex_counts,
     resolve_velocity_path_from_first_frame_obj,
     scene_info_from_metadata_dict,
 )
-from physformer.data.obj_io import load_obj_vertices_faces
-from physformer.data.vertex_utils import fix_num_vertices
-from physformer.diffusion.denoiser import DiffusionConfig
-from physformer.diffusion.physformer_denoiser import PhysFormerDenoiser
-from physformer.models.physformer import canonical_model_name
+from physiformer.data.obj_io import load_obj_vertices_faces
+from physiformer.data.vertex_utils import fix_num_vertices
+from physiformer.diffusion.denoiser import DiffusionConfig
+from physiformer.diffusion.physiformer_denoiser import PhysiFormerDenoiser
+from physiformer.models.physiformer import canonical_model_name
 
 
 SCENE_COND_DIM = 10
@@ -1050,7 +1050,7 @@ def _save_animation(
 
 
 def build_argparser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser("PhysFormer multi-object vertex-token inference")
+    p = argparse.ArgumentParser("PhysiFormer multi-object vertex-token inference")
     p.add_argument("--ckpt", type=str, required=True)
     p.add_argument("--out_dir", type=str, required=True)
     p.add_argument("--num_samples", type=int, default=1)
@@ -1249,7 +1249,7 @@ def main() -> None:
             f"--max_num_objects={max_num_objects} is smaller than checkpoint max_num_objects={ckpt_max_num_objects}."
         )
     if int(max_num_objects) > int(ckpt_max_num_objects):
-        init_std = float(os.environ.get("PHYSFORMER_OBJ_EMBED_INIT_STD", os.environ.get("JMT4D_OBJ_EMBED_INIT_STD", "0.02")))
+        init_std = float(os.environ.get("PHYSIFORMER_OBJ_EMBED_INIT_STD", os.environ.get("JMT4D_OBJ_EMBED_INIT_STD", "0.02")))
         changed = _maybe_expand_ckpt(ckpt, target_max_num_objects=int(max_num_objects), init_std=float(init_std))
         if bool(changed):
             vlog(
@@ -1334,7 +1334,7 @@ def main() -> None:
         scene_cond_embed_out_tokens = 0
         object_material_dim = 0
 
-    ckpt_model_name = str(train_args.get("model", "PhysFormer-B"))
+    ckpt_model_name = str(train_args.get("model", "PhysiFormer-B"))
     model_name = canonical_model_name(ckpt_model_name)
 
     model_kwargs = {
@@ -1385,7 +1385,7 @@ def main() -> None:
     )
     vlog(f"delta_to_first_frame={delta_to_first_frame}")
 
-    denoiser_cls = PhysFormerDenoiser
+    denoiser_cls = PhysiFormerDenoiser
     model = denoiser_cls(
         model_name=model_name,
         num_frames=int(train_args.get("num_frames", 32)),

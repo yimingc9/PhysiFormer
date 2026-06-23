@@ -14,7 +14,7 @@ SRC_ROOT = CODE_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from physformer.data.obj_io import load_obj_vertices_faces
+from physiformer.data.obj_io import load_obj_vertices_faces
 
 
 DEFAULT_EVAL_ASSETS_ROOT = CODE_ROOT / "eval_assets"

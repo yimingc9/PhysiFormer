@@ -1,8 +1,4 @@
-<!-- <p align="center">
-  <img src="assets/PhysFormer%20Logo.png" alt="PhysFormer logo" width="20%">
-</p> -->
-
-<h1 align="center">PhysFormer: Learning to Simulate Mechanics<br> in World Space</h1>
+<h1 align="center">PhysiFormer: Learning to Simulate Mechanics<br> in World Space</h1>
 
 <p align="center">
   Yiming Chen, Yushi Lan, Andrea Vedaldi<br>
@@ -13,10 +9,10 @@
   <a href="https://arxiv.org/abs/YOUR_ARXIV_ID">
     <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b.svg">
   </a>
-  <a href="https://yimingc9.github.io/physformer/">
+  <a href="https://yimingc9.github.io/physiformer/">
     <img src="https://img.shields.io/badge/Project-Page-4285F4.svg">
   </a>
-  <a href="https://huggingface.co/spaces/yslan/PhysFormer">
+  <a href="https://huggingface.co/spaces/yslan/PhysiFormer">
     <img src="https://img.shields.io/badge/🤗-Demo-yellow.svg">
   </a>
 </p>
@@ -24,13 +20,13 @@
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/4e5308a2-45ee-4a43-8337-2b51916cb3a0"
-    alt="physformer teaser"
+    alt="physiformer teaser"
     width="640">
 </p>
 
-PhysFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
+PhysiFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
 in world coordinates for rigid and elastic materials. Rather than predicting future frames in
-pixel space or rolling out next-step system states autoregressively, PhysFormer models motion as
+pixel space or rolling out next-step system states autoregressively, PhysiFormer models motion as
 full-trajectory coordinate diffusion: given initial per-vertex positions, velocities, and material
 conditions, it denoises entire future vertex trajectories, with mesh topology imposed
 at inference. This design enables physically plausible interactions without hard-coded constraints, 
@@ -38,15 +34,15 @@ simulator priors, or learned shape latents. Generative modelling captures uncert
 generating diverse yet physically plausible futures from the same initial conditions unlike deterministic autoregressive methods.
 Its DiT-style backbone uses factorized temporal, spatial, and object-level attention to capture coherent
 structure across time, vertices, and objects. Trained on over 100k collision-rich, single-material
-simulated trajectories, PhysFormer generalizes to unseen real-world geometries, larger object counts,
+simulated trajectories, PhysiFormer generalizes to unseen real-world geometries, larger object counts,
 and mixed-material scenes.
 
 ## ⚙️ Setup
 
 ```bash
 # Create conda environment
-conda create -n physformer python=3.10 -y
-conda activate physformer
+conda create -n physiformer python=3.10 -y
+conda activate physiformer
 
 # Install PyTorch (CUDA 12.4)
 pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
@@ -63,7 +59,7 @@ attention fallback; that path is much slower and may use more memory.
 Download checkpoint from HuggingFace before running scripts:
 
 ```bash
-hf download yslan/physformer checkpoint-best.pt --local-dir checkpoints
+hf download yslan/physiformer checkpoint-best.pt --local-dir checkpoints
 ```
 
 ## 🌟 Minimal Inference

@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "physformer-official-demo-inference"
+name = "physiformer-official-demo-inference"
 version = "0.1.0"
-description = "Compact PhysFormer inference export for the official demo samples."
+description = "Compact PhysiFormer inference export for the official demo samples."
 requires-python = ">=3.10"
 dependencies = [
   "numpy",

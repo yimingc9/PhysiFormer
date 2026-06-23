@@ -27,7 +27,7 @@ _ATTENTION_SUMMARY_REGISTERED = False
 
 
 def _attention_debug_enabled() -> bool:
-    value = os.environ.get("PHYSFORMER_SDPA_DEBUG", os.environ.get("JMT4D_SDPA_DEBUG", "0")).strip().lower()
+    value = os.environ.get("PHYSIFORMER_SDPA_DEBUG", os.environ.get("JMT4D_SDPA_DEBUG", "0")).strip().lower()
     return value not in ("", "0", "false", "no", "off")
 
 
@@ -42,7 +42,7 @@ def _attention_log_once(key: str, msg: str, *, debug_only: bool = False) -> None
 
 
 def _attention_chunk_size() -> int:
-    raw = os.environ.get("PHYSFORMER_ATTENTION_CHUNK_SIZE", "512").strip()
+    raw = os.environ.get("PHYSIFORMER_ATTENTION_CHUNK_SIZE", "512").strip()
     try:
         value = int(raw)
     except ValueError:

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 VERTEX_COUNT_CONFIG = "vertex_counts_multiobj_all.json"
-DEFAULT_CKPT_REPO_ID = "yslan/physformer"
+DEFAULT_CKPT_REPO_ID = "yslan/physiformer"
 DEFAULT_CKPT_FILENAME = "checkpoint-best.pt"
 
 
@@ -34,11 +34,11 @@ def default_vertex_count_json() -> Path:
 
 
 def checkpoint_repo_id() -> str:
-    return os.environ.get("PHYSFORMER_CKPT_REPO_ID", DEFAULT_CKPT_REPO_ID)
+    return os.environ.get("PHYSIFORMER_CKPT_REPO_ID", DEFAULT_CKPT_REPO_ID)
 
 
 def checkpoint_filename() -> str:
-    return os.environ.get("PHYSFORMER_CKPT_FILENAME", DEFAULT_CKPT_FILENAME)
+    return os.environ.get("PHYSIFORMER_CKPT_FILENAME", DEFAULT_CKPT_FILENAME)
 
 
 def ensure_default_checkpoint() -> tuple[Path, str]:

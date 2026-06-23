@@ -279,5 +279,5 @@
     "z_step_prism_16v": 16,
     "z_step_prism_16v.obj": 16
   },
-  "schema": "physformer.mesh_vertex_counts.v1"
+  "schema": "physiformer.mesh_vertex_counts.v1"
 }
