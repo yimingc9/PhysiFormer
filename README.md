@@ -1,4 +1,4 @@
-<h1 align="center">PhysiFormer: Learning to Simulate Mechanics<br> in World Space</h1>
+<h1 align="center">🫧PhysiFormer: Learning to Simulate Mechanics<br> in World Space</h1>
 
 <p align="center">
   Yiming Chen, Yushi Lan, Andrea Vedaldi<br>
