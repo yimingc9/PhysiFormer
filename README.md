@@ -28,14 +28,16 @@
     width="640">
 </p>
 
-PhysiFormer is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
+PhysiFormer (pronouced 🫧fizzy🫧former) is a unified diffusion transformer that generates 4D multi-object mesh dynamics directly
 in world coordinates for rigid and elastic materials. Rather than predicting future frames in
 pixel space or rolling out next-step system states autoregressively, PhysiFormer models motion as
 full-trajectory coordinate diffusion: given initial per-vertex positions, velocities, and material
 conditions, it denoises entire future vertex trajectories, with mesh topology imposed
 at inference. This design enables physically plausible interactions without hard-coded constraints, 
-simulator priors, or learned shape latents. Generative modelling captures uncertainty in variables not provided as input (e.g. mass, friction), 
-generating diverse yet physically plausible futures from the same initial conditions unlike deterministic autoregressive methods.
+simulator priors, or learned shape latents. Although training saw fixed physical parameters (e.g. density and
+friction), the probabilistic formulation captures uncertainty in the learned dynamics,
+enabling diverse plausible futures from initial conditions, making this framework
+potentially useful for applications with unobserved uncertainty. 
 Its DiT-style backbone uses factorized temporal, spatial, and object-level attention to capture coherent
 structure across time, vertices, and objects. Trained on over 100k collision-rich, single-material
 simulated trajectories, PhysiFormer generalizes to unseen real-world geometries, larger object counts,
