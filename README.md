@@ -1,3 +1,6 @@
+
+
+
 <h1 align="center">🫧PhysiFormer: Learning to Simulate Mechanics<br> in World Space</h1>
 
 <p align="center">
@@ -19,7 +22,7 @@
 
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/99423b31-6989-4597-bb33-2c21fc033aa1"
+    src="https://github.com/user-attachments/assets/d26832ed-cbb2-4518-8747-a6d78abe5509"
     alt="physiformer teaser"
     width="640">
 </p>
