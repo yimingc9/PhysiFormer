@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://arxiv.org/abs/YOUR_ARXIV_ID">
+  <a href="https://arxiv.org/abs/2606.27364">
     <img src="https://img.shields.io/badge/arXiv-Paper-b31b1b.svg">
   </a>
   <a href="https://yimingc9.github.io/physiformer/">
