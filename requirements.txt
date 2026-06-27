@@ -4,10 +4,6 @@
 torch==2.5.1
 torchvision==0.20.1
 
-# FlashAttention recommended. Use the prebuilt wheel that
-# matches Python 3.10, CUDA 12, torch 2.5, and cxx11 ABI false.
-flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3%2Bcu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
-
 # Core runtime dependencies for the copied inference/render code.
 gradio>=4
 huggingface_hub>=0.30
