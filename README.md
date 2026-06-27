@@ -42,12 +42,10 @@ conda activate physiformer
 # Install PyTorch (CUDA 12.4)
 pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
 
-# Install remaining requirements, including the prebuilt flash-attn wheel.
+# Install remaining requirements 
 pip install -r requirements.txt
 ```
-If flash-attn is unavailable, the model falls back to PyTorch CUDA SDPA kernels. If no fast
-CUDA attention backend is available, inference continues with a clearly logged math/chunked
-attention fallback; that path is much slower and may use more memory.
+Model defauts to PyTorch CUDA SDPA kernels. If unavailable, model uses math/chunked attention fallback.
 
 ## 🤗 Model Access
 
