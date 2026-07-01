@@ -9,7 +9,7 @@ class DiffusionConfig:
     P_mean: float = -0.8
     P_std: float = 0.8
     t_eps: float = 5e-2
-    noise_scale: float = 1.0
+    noise_scale: float = 0.1
 
     # Sampling.
     sampling_method: str = "heun"

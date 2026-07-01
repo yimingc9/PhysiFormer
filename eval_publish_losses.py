@@ -1084,7 +1084,7 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
         P_mean=float(train_args.get("P_mean", -0.8)),
         P_std=float(train_args.get("P_std", 0.8)),
         t_eps=float(train_args.get("t_eps", 5e-2)),
-        noise_scale=float(train_args.get("noise_scale", 1.0)),
+        noise_scale=float(train_args.get("noise_scale", DiffusionConfig.noise_scale)),
         sampling_method=sampling_method,
         num_sampling_steps=num_sampling_steps,
     )
