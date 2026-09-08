@@ -32,6 +32,14 @@ We present PhysiFormer(pronouced 🫧fizzy🫧former), a diffusion transformer f
 ## 📦 Coming Soon
 The dataset will be released soon. Please stay tuned! 
 
+## 🤗 Model Access
+
+Download checkpoint from HuggingFace before running scripts:
+
+```bash
+hf download yslan/physiformer checkpoint-best.pt --local-dir checkpoints
+```
+
 ## ⚙️ Setup
 
 ```bash
