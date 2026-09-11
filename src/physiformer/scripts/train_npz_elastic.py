@@ -17,6 +17,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
 
+from physiformer.checkpoints import (adapt_legacy_conditioner, load_checkpoint,
+                                    load_training_checkpoint, select_weights)
 from physiformer.diffusion.denoiser import DiffusionConfig
 from physiformer.diffusion.physiformer_denoiser import PhysiFormerDenoiser
 
@@ -454,17 +456,13 @@ def save_checkpoint(
 
 
 def initialize_from_checkpoint(model: torch.nn.Module, ckpt_path: str | Path, *, use_ema: bool) -> dict[str, int]:
-    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-    if bool(use_ema) and isinstance(ckpt.get("ema"), dict) and isinstance(ckpt["ema"].get("shadow"), dict):
-        src_state = ckpt["ema"]["shadow"]
-        source = "ema"
-    else:
-        src_state = ckpt.get("model", ckpt)
-        source = "model"
+    ckpt = load_checkpoint(ckpt_path)
+    src_state, source = select_weights(ckpt, use_ema=use_ema)
     if not isinstance(src_state, dict):
         raise ValueError(f"Could not find a model state dict in init checkpoint: {ckpt_path}")
 
     own_state = model.state_dict()
+    src_state = adapt_legacy_conditioner(src_state, own_state)
     compatible: dict[str, torch.Tensor] = {}
     skipped_missing = 0
     skipped_shape = 0
@@ -480,6 +478,8 @@ def initialize_from_checkpoint(model: torch.nn.Module, ckpt_path: str | Path, *,
             continue
         compatible[key] = value
 
+    if not compatible:
+        raise ValueError("No compatible weights found; check the model and conditioning settings")
     incompat = model.load_state_dict(compatible, strict=False)
     return {
         "source": 1 if source == "ema" else 0,
@@ -565,7 +565,7 @@ def build_argparser() -> argparse.ArgumentParser:
     p.add_argument("--save_epoch_freq", type=int, default=10)
     p.add_argument("--save_last_freq", type=int, default=1000)
     p.add_argument("--resume", type=str, default="")
-    p.add_argument("--init_ckpt", type=str, default="", help="Initialize weights from a checkpoint without optimizer state.")
+    p.add_argument("--init_ckpt", type=str, default="", help="Initialize from .pt or .safetensors (+ sibling config.json), with a fresh optimizer.")
     p.add_argument("--init_use_ema", action="store_true")
     p.add_argument("--no_init_ema", action="store_false", dest="init_use_ema")
     p.set_defaults(init_use_ema=True)
@@ -575,6 +575,10 @@ def build_argparser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_argparser().parse_args()
+    if args.init_ckpt and args.resume:
+        raise ValueError("Choose --init_ckpt or --resume, not both")
+    if args.resume and Path(args.resume).suffix.lower() == ".safetensors":
+        raise ValueError("--resume requires a full .pt checkpoint; use --init_ckpt for SafeTensors weights")
     reproduce = args.training_protocol == "altobj"
     args.val_use_ema = reproduce
     if (args.norm_mean is None) != (args.norm_std is None):
@@ -754,7 +758,7 @@ def main() -> None:
     global_step = 0
     best_val = float("inf")
     if args.resume:
-        ckpt = torch.load(args.resume, map_location="cpu", weights_only=False)
+        ckpt = load_training_checkpoint(args.resume)
         model.load_state_dict(ckpt["model"], strict=True)
         optimizer.load_state_dict(ckpt["optimizer"])
         if isinstance(ckpt.get("ema"), dict):

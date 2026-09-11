@@ -44,6 +44,7 @@ from physiformer.data.multiobj_utils_multiobj import (
 )
 from physiformer.data.obj_io import load_obj_vertices_faces
 from physiformer.data.vertex_utils import fix_num_vertices
+from physiformer.checkpoints import load_checkpoint, select_weights
 from physiformer.diffusion.denoiser import DiffusionConfig
 from physiformer.diffusion.physiformer_denoiser import PhysiFormerDenoiser
 from physiformer.models.physiformer import canonical_model_name
@@ -1051,7 +1052,7 @@ def _save_animation(
 
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser("PhysiFormer multi-object vertex-token inference")
-    p.add_argument("--ckpt", type=str, required=True)
+    p.add_argument("--ckpt", type=str, required=True, help=".pt or .safetensors with sibling config.json")
     p.add_argument("--out_dir", type=str, required=True)
     p.add_argument("--num_samples", type=int, default=1)
     p.add_argument("--num_generations_per_sample", type=int, default=1)
@@ -1224,7 +1225,7 @@ def main() -> None:
             print(msg, flush=True)
 
     load_t0 = time.perf_counter()
-    ckpt = torch.load(args.ckpt, map_location="cpu", weights_only=False)
+    ckpt = load_checkpoint(args.ckpt)
     ckpt_load_s = time.perf_counter() - load_t0
     print(f"[timing] checkpoint_load_s={ckpt_load_s:.3f}", flush=True)
     train_args = ckpt.get("args", {})
@@ -1306,7 +1307,9 @@ def main() -> None:
         f"norm_std={[float(v) for v in norm_std.tolist()]}"
     )
 
-    state_dict_to_load = dict(ckpt["ema"]["shadow"] if args.use_ema and "ema" in ckpt else ckpt["model"])
+    selected_state, weight_source = select_weights(ckpt, use_ema=args.use_ema)
+    state_dict_to_load = dict(selected_state)
+    print(f"[checkpoint] weight_source={weight_source}", flush=True)
     if bool(args.env_and_mat):
         ckpt_num_scene_tokens, ckpt_scene_cond_dim, ckpt_scene_cond_embed_out_tokens, ckpt_object_material_dim = _infer_conditioning_dims_from_state_dict(
             state_dict_to_load

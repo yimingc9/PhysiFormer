@@ -14,7 +14,7 @@ from typing import Sequence
 
 from official_demo_inference.paths import code_root as _code_root
 from official_demo_inference.paths import default_demo_root as _default_demo_root
-from official_demo_inference.paths import default_checkpoint_path
+from official_demo_inference.paths import checkpoint_repo_id, default_checkpoint_path
 from official_demo_inference.paths import default_vertex_count_json
 
 
@@ -432,8 +432,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error(
                 "Checkpoint is missing. Download it first and place it at "
                 f"{DEFAULT_CHECKPOINT}. For example:\n"
-                "  huggingface-cli download yslan/physiformer checkpoint-best.pt --local-dir checkpoints\n"
-                "Or pass a checkpoint explicitly with --checkpoint /path/to/checkpoint.pt."
+                f"  hf download {checkpoint_repo_id()} {DEFAULT_CHECKPOINT.name}"
+                f"{' config.json' if DEFAULT_CHECKPOINT.suffix == '.safetensors' else ''} --local-dir checkpoints\n"
+                "Or pass --checkpoint /path/to/model.safetensors (with config.json) or /path/to/checkpoint.pt."
             )
         parser.error(f"--checkpoint is not a file: {args.checkpoint}")
     if not args.mesh_vertex_count_json.is_file():

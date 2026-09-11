@@ -6,7 +6,7 @@ from pathlib import Path
 
 VERTEX_COUNT_CONFIG = "vertex_counts_multiobj_all.json"
 DEFAULT_CKPT_REPO_ID = "yslan/physiformer"
-DEFAULT_CKPT_FILENAME = "checkpoint-best.pt"
+DEFAULT_CKPT_FILENAME = "model.safetensors"
 
 
 def code_root() -> Path:
@@ -18,7 +18,7 @@ def default_demo_root() -> Path:
 
 
 def default_checkpoint_path() -> Path:
-    return code_root() / "checkpoints" / DEFAULT_CKPT_FILENAME
+    return code_root() / "checkpoints" / checkpoint_filename()
 
 
 def default_vertex_count_json() -> Path:
@@ -43,7 +43,9 @@ def checkpoint_filename() -> str:
 
 def ensure_default_checkpoint() -> tuple[Path, str]:
     ckpt_path = default_checkpoint_path()
-    if ckpt_path.is_file():
+    is_safe = ckpt_path.suffix.lower() == ".safetensors"
+    config_path = ckpt_path.with_name("config.json")
+    if ckpt_path.is_file() and (not is_safe or config_path.is_file()):
         return ckpt_path, f"Checkpoint found: {ckpt_path}"
 
     try:
@@ -51,12 +53,16 @@ def ensure_default_checkpoint() -> tuple[Path, str]:
     except Exception as exc:  # pragma: no cover
         raise RuntimeError(
             "Checkpoint is missing and huggingface_hub is not installed. "
-            "Install requirements.txt or place checkpoint-best.pt under checkpoints/."
+            f"Install requirements.txt or place {ckpt_path.name}"
+            f"{' and config.json' if is_safe else ''} under checkpoints/."
         ) from exc
 
     ckpt_path.parent.mkdir(parents=True, exist_ok=True)
     repo_id = checkpoint_repo_id()
     filename = checkpoint_filename()
+    if is_safe:
+        hf_hub_download(repo_id=repo_id, filename="config.json",
+                        local_dir=str(ckpt_path.parent), token=os.environ.get("HF_TOKEN") or None)
     downloaded = hf_hub_download(
         repo_id=repo_id,
         filename=filename,

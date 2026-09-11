@@ -79,8 +79,13 @@ append `-- --norm_mean X Y Z --norm_std X Y Z` to the command.
 ```bash
 # Load compatible weights with a fresh optimizer and schedule.
 RESUME=none OUT_DIR=runs/toy_finetune \
-  bash scripts/train_toy_physiformer.sh -- --init_ckpt /path/to/checkpoint.pt
+  bash scripts/train_toy_physiformer.sh -- --init_ckpt checkpoints/model.safetensors
 
 # Resume model, optimizer, EMA, epoch, and step.
 RESUME=/path/to/checkpoint-last.pt bash scripts/train_toy_physiformer.sh
 ```
+
+Initialization accepts `.pt` or `.safetensors` with its sibling `config.json`.
+Match the model and conditioning settings; initialization starts a fresh optimizer
+and uses the selected training data's normalization unless overridden.
+Training saves full `.pt` checkpoints; use those with `RESUME` to continue a run.

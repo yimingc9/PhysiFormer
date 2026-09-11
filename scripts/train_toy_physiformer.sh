@@ -168,6 +168,8 @@ from physiformer.scripts.train_npz_elastic import build_argparser, load_split_en
 args = build_argparser().parse_args(sys.argv[2:])
 if args.init_ckpt and args.resume:
     raise SystemExit("Choose checkpoint initialization or resume; set RESUME=none when using --init_ckpt.")
+if args.resume and Path(args.resume).suffix.lower() == ".safetensors":
+    raise SystemExit("RESUME requires a full .pt checkpoint; use RESUME=none and --init_ckpt for SafeTensors.")
 for checkpoint in (args.init_ckpt, args.resume):
     if checkpoint and not Path(checkpoint).is_file():
         raise SystemExit(f"Checkpoint not found: {checkpoint}")

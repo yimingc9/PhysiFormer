@@ -25,3 +25,7 @@ checkpoints/checkpoint-best.pt
 checkpoints/*.pt
 checkpoints/*.pth
 checkpoints/*.ckpt
+
+# Downloaded weights and their paired release configuration.
+checkpoints/*.safetensors
+checkpoints/config.json

@@ -52,7 +52,7 @@ DEFAULT_PREP_SAMPLE_NAMES = "2obj_elastic,3obj_rigid,4obj_elastic,5obj_rigid"
 
 
 def _resolve_default_ckpt(run_dir: Path) -> Path:
-    for name in ("checkpoint-best.pt", "checkpoint-last.pt"):
+    for name in ("model.safetensors", "checkpoint-best.pt", "checkpoint-last.pt"):
         path = run_dir / name
         if path.is_file():
             return path
@@ -1009,7 +1009,8 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
     if not ckpt_path.is_file():
         raise FileNotFoundError(f"Checkpoint not found: {ckpt_path}")
 
-    ckpt = torch.load(str(ckpt_path), map_location="cpu", weights_only=False)
+    from physiformer.checkpoints import load_checkpoint, select_weights
+    ckpt = load_checkpoint(ckpt_path)
     train_args_any = ckpt.get("args", {})
     train_args: dict[str, Any] = train_args_any if isinstance(train_args_any, dict) else {}
 
@@ -1044,15 +1045,9 @@ def _load_model_and_runtime(args: argparse.Namespace) -> tuple[
     coord_shift = float(train_args.get("coord_shift", 0.0))
     norm_mean, norm_std = _resolve_norm_stats(train_args)
 
-    if bool(args.use_ema) and "ema" in ckpt:
-        print("[CKPT] Loading EMA weights: ckpt['ema']['shadow']", flush=True)
-        state_dict_to_load = dict(ckpt["ema"]["shadow"])
-    else:
-        if bool(args.use_ema):
-            print("[CKPT] Requested EMA but checkpoint has no 'ema'; loading ckpt['model']", flush=True)
-        else:
-            print("[CKPT] Loading raw weights: ckpt['model']", flush=True)
-        state_dict_to_load = dict(ckpt["model"])
+    selected_state, weight_source = select_weights(ckpt, use_ema=bool(args.use_ema))
+    print(f"[CKPT] Loading {weight_source} weights", flush=True)
+    state_dict_to_load = dict(selected_state)
 
     ckpt_num_scene_tokens, ckpt_scene_cond_dim, ckpt_scene_cond_embed_out_tokens, ckpt_object_material_dim = (
         _infer_conditioning_dims_from_state_dict(state_dict_to_load)
