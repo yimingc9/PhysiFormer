@@ -1,0 +1,181 @@
+{
+  "index_kind": "sample_selector",
+  "selector_format": "category::NPZ path relative to data_toy/<category>",
+  "selection": "sample_0 per category and object count is validation; sample_1 through sample_9 are training.",
+  "category_roots": {
+    "elastic": "elastic",
+    "rigid": "rigid"
+  },
+  "material_alias_values": {
+    "elastic": [
+      1.0
+    ],
+    "rigid": [
+      0.0
+    ]
+  },
+  "sizes": {
+    "train": 90,
+    "val": 10,
+    "test": 0
+  },
+  "groups": {
+    "elastic/1_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "elastic/2_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "elastic/3_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "elastic/4_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "elastic/5_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "rigid/6_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "rigid/7_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "rigid/8_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "rigid/9_obj": {
+      "train": 9,
+      "val": 1
+    },
+    "rigid/10_obj": {
+      "train": 9,
+      "val": 1
+    }
+  },
+  "train": [
+    "elastic::1_obj/sample_1/sample.npz",
+    "elastic::1_obj/sample_2/sample.npz",
+    "elastic::1_obj/sample_3/sample.npz",
+    "elastic::1_obj/sample_4/sample.npz",
+    "elastic::1_obj/sample_5/sample.npz",
+    "elastic::1_obj/sample_6/sample.npz",
+    "elastic::1_obj/sample_7/sample.npz",
+    "elastic::1_obj/sample_8/sample.npz",
+    "elastic::1_obj/sample_9/sample.npz",
+    "elastic::2_obj/sample_1/sample.npz",
+    "elastic::2_obj/sample_2/sample.npz",
+    "elastic::2_obj/sample_3/sample.npz",
+    "elastic::2_obj/sample_4/sample.npz",
+    "elastic::2_obj/sample_5/sample.npz",
+    "elastic::2_obj/sample_6/sample.npz",
+    "elastic::2_obj/sample_7/sample.npz",
+    "elastic::2_obj/sample_8/sample.npz",
+    "elastic::2_obj/sample_9/sample.npz",
+    "elastic::3_obj/sample_1/sample.npz",
+    "elastic::3_obj/sample_2/sample.npz",
+    "elastic::3_obj/sample_3/sample.npz",
+    "elastic::3_obj/sample_4/sample.npz",
+    "elastic::3_obj/sample_5/sample.npz",
+    "elastic::3_obj/sample_6/sample.npz",
+    "elastic::3_obj/sample_7/sample.npz",
+    "elastic::3_obj/sample_8/sample.npz",
+    "elastic::3_obj/sample_9/sample.npz",
+    "elastic::4_obj/sample_1/sample.npz",
+    "elastic::4_obj/sample_2/sample.npz",
+    "elastic::4_obj/sample_3/sample.npz",
+    "elastic::4_obj/sample_4/sample.npz",
+    "elastic::4_obj/sample_5/sample.npz",
+    "elastic::4_obj/sample_6/sample.npz",
+    "elastic::4_obj/sample_7/sample.npz",
+    "elastic::4_obj/sample_8/sample.npz",
+    "elastic::4_obj/sample_9/sample.npz",
+    "elastic::5_obj/sample_1/sample.npz",
+    "elastic::5_obj/sample_2/sample.npz",
+    "elastic::5_obj/sample_3/sample.npz",
+    "elastic::5_obj/sample_4/sample.npz",
+    "elastic::5_obj/sample_5/sample.npz",
+    "elastic::5_obj/sample_6/sample.npz",
+    "elastic::5_obj/sample_7/sample.npz",
+    "elastic::5_obj/sample_8/sample.npz",
+    "elastic::5_obj/sample_9/sample.npz",
+    "rigid::6_obj/sample_1/sample.npz",
+    "rigid::6_obj/sample_2/sample.npz",
+    "rigid::6_obj/sample_3/sample.npz",
+    "rigid::6_obj/sample_4/sample.npz",
+    "rigid::6_obj/sample_5/sample.npz",
+    "rigid::6_obj/sample_6/sample.npz",
+    "rigid::6_obj/sample_7/sample.npz",
+    "rigid::6_obj/sample_8/sample.npz",
+    "rigid::6_obj/sample_9/sample.npz",
+    "rigid::7_obj/sample_1/sample.npz",
+    "rigid::7_obj/sample_2/sample.npz",
+    "rigid::7_obj/sample_3/sample.npz",
+    "rigid::7_obj/sample_4/sample.npz",
+    "rigid::7_obj/sample_5/sample.npz",
+    "rigid::7_obj/sample_6/sample.npz",
+    "rigid::7_obj/sample_7/sample.npz",
+    "rigid::7_obj/sample_8/sample.npz",
+    "rigid::7_obj/sample_9/sample.npz",
+    "rigid::8_obj/sample_1/sample.npz",
+    "rigid::8_obj/sample_2/sample.npz",
+    "rigid::8_obj/sample_3/sample.npz",
+    "rigid::8_obj/sample_4/sample.npz",
+    "rigid::8_obj/sample_5/sample.npz",
+    "rigid::8_obj/sample_6/sample.npz",
+    "rigid::8_obj/sample_7/sample.npz",
+    "rigid::8_obj/sample_8/sample.npz",
+    "rigid::8_obj/sample_9/sample.npz",
+    "rigid::9_obj/sample_1/sample.npz",
+    "rigid::9_obj/sample_2/sample.npz",
+    "rigid::9_obj/sample_3/sample.npz",
+    "rigid::9_obj/sample_4/sample.npz",
+    "rigid::9_obj/sample_5/sample.npz",
+    "rigid::9_obj/sample_6/sample.npz",
+    "rigid::9_obj/sample_7/sample.npz",
+    "rigid::9_obj/sample_8/sample.npz",
+    "rigid::9_obj/sample_9/sample.npz",
+    "rigid::10_obj/sample_1/sample.npz",
+    "rigid::10_obj/sample_2/sample.npz",
+    "rigid::10_obj/sample_3/sample.npz",
+    "rigid::10_obj/sample_4/sample.npz",
+    "rigid::10_obj/sample_5/sample.npz",
+    "rigid::10_obj/sample_6/sample.npz",
+    "rigid::10_obj/sample_7/sample.npz",
+    "rigid::10_obj/sample_8/sample.npz",
+    "rigid::10_obj/sample_9/sample.npz"
+  ],
+  "val": [
+    "elastic::1_obj/sample_0/sample.npz",
+    "elastic::2_obj/sample_0/sample.npz",
+    "elastic::3_obj/sample_0/sample.npz",
+    "elastic::4_obj/sample_0/sample.npz",
+    "elastic::5_obj/sample_0/sample.npz",
+    "rigid::6_obj/sample_0/sample.npz",
+    "rigid::7_obj/sample_0/sample.npz",
+    "rigid::8_obj/sample_0/sample.npz",
+    "rigid::9_obj/sample_0/sample.npz",
+    "rigid::10_obj/sample_0/sample.npz"
+  ],
+  "eval": [
+    "elastic::1_obj/sample_0/sample.npz",
+    "elastic::2_obj/sample_0/sample.npz",
+    "elastic::3_obj/sample_0/sample.npz",
+    "elastic::4_obj/sample_0/sample.npz",
+    "elastic::5_obj/sample_0/sample.npz",
+    "rigid::6_obj/sample_0/sample.npz",
+    "rigid::7_obj/sample_0/sample.npz",
+    "rigid::8_obj/sample_0/sample.npz",
+    "rigid::9_obj/sample_0/sample.npz",
+    "rigid::10_obj/sample_0/sample.npz"
+  ],
+  "test": []
+}

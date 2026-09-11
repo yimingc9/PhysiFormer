@@ -47,6 +47,54 @@ pip install -r requirements.txt
 ```
 Model defauts to PyTorch CUDA SDPA kernels. If unavailable, model uses math/chunked attention fallback.
 
+## Toy training example
+
+The [toy dataset](data_toy/README.md) contains 90 training and 10 validation
+trajectories: `sample_0` from each category/object-count group is validation.
+The toy launcher is a template for training on your own data. It uses the full
+AltObj run's training recipe: **PhysiFormer-L, batch 8/GPU × 2 GPUs × accumulation
+4 = effective batch 64**, BF16, 10,000 virtual samples per epoch, 6,000 epochs,
+epoch-based cosine LR, and EMA validation every 10 epochs.
+
+```bash
+# Train the toy example with the full training recipe.
+bash scripts/train_toy_physiformer.sh
+
+# Preview settings and verify split paths without training or GPU use.
+bash scripts/train_toy_physiformer.sh --dry-run
+
+# One GPU; accumulation adjusts to keep the effective batch at 64.
+bash scripts/train_toy_physiformer.sh --gpus 1
+
+# Adapt the same launcher to another dataset with a train/val split.
+DATA_ROOT=/path/to/npzs SPLIT_FILE=/path/to/split.json \
+NUM_VERTICES=0 MAX_NUM_OBJECTS=5 COND_OBJECT_MATERIAL=0 OUT_DIR=runs/my_dataset \
+  bash scripts/train_toy_physiformer.sh
+```
+
+The dataset settings are grouped in the [launcher](scripts/train_toy_physiformer.sh).
+The supplied toy data uses 49 frames, 356 vertex slots, up to 10 objects,
+rigid/elastic material conditioning, and normalization computed from its training
+split. See the [adaptation guide](data_toy/README.md#use-your-own-data) for the NPZ
+schema, split format, material labels, and fixed normalization overrides.
+
+```bash
+# Initialize weights for fine-tuning with a fresh optimizer and schedule.
+RESUME=none OUT_DIR=runs/toy_finetune \
+  bash scripts/train_toy_physiformer.sh -- --init_ckpt /path/to/checkpoint.pt
+
+# Resume model, optimizer, EMA, epoch, and step.
+RESUME=/path/to/checkpoint-last.pt bash scripts/train_toy_physiformer.sh
+```
+
+Initialization prefers EMA weights; add `--no_init_ema` for raw weights.
+`RESUME=auto` resumes the latest checkpoint in the output directory when present.
+The default model is `MODEL=PhysiFormer` (L); set `MODEL=PhysiFormer-B` for B.
+Their [architectures](src/physiformer/models/physiformer.py) use 24/12 layers,
+width 1024/768, and 16/12 attention heads respectively. Use checkpoints compatible
+with the selected model. See the [training guide](data_toy/README.md#training)
+for a short smoke test, Slurm, and other overrides.
+
 ## 🌟 Minimal Inference
 
 The example scripts write predicted rollout samples into each input sample directory as
