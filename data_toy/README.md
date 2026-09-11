@@ -5,15 +5,8 @@ objects, with 10 samples per object count. Each sample contains `sample.npz`
 and `trajectory.mp4`.
 
 [split.json](split.json) assigns **`sample_0` from each group to validation** and
-`sample_1`–`sample_9` to training: **90 train / 10 validation**. Each category also
-has its own 45/5 split. `eval` aliases `val`; `test` is empty.
-
-Create or check the split files from the repository root:
-
-```bash
-python scripts/prepare_toy_split.py
-python scripts/prepare_toy_split.py --check
-```
+`sample_1`–`sample_9` to training: **90 train / 10 validation**.
+`eval` aliases `val`; `test` is empty.
 
 ## Training
 
@@ -81,7 +74,7 @@ Toy defaults: 49 frames, 356 vertices, up to 10 objects, and material conditioni
 Set `COND_OBJECT_MATERIAL=0` to disable material features. For fixed normalization,
 append `-- --norm_mean X Y Z --norm_std X Y Z` to the command.
 
-## Checkpoints and Slurm
+## Checkpoints
 
 ```bash
 # Load compatible weights with a fresh optimizer and schedule.

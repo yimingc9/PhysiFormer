@@ -9,7 +9,6 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from scripts.prepare_toy_split import build_splits
 from physiformer.scripts import train_npz_elastic as trainer
 from physiformer.scripts.train_npz_elastic import evaluate
 
@@ -34,30 +33,6 @@ def sample(value):
 
 
 class ToyTrainingTests(unittest.TestCase):
-    def test_split_holds_out_zero_in_every_group(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            for category, counts in (("elastic", range(1, 6)), ("rigid", range(6, 11))):
-                for count in counts:
-                    for i in reversed(range(10)):
-                        p = root / category / f"{count}_obj" / f"sample_{i}" / "sample.npz"
-                        p.parent.mkdir(parents=True)
-                        p.touch()
-            result = build_splits(root)
-            split = result[root / "split.json"]
-            self.assertEqual(split["sizes"], {"train": 90, "val": 10, "test": 0})
-            self.assertEqual(len(set(split["train"] + split["val"])), 100)
-            self.assertTrue(all("/sample_0/" in s for s in split["val"]))
-            self.assertFalse(any("/sample_0/" in s for s in split["train"]))
-            self.assertEqual(split["eval"], split["val"])
-            for category in ("elastic", "rigid"):
-                self.assertEqual(result[root / category / "split.json"]["sizes"],
-                                 {"train": 45, "val": 5, "test": 0})
-            # A changed group size must not silently change the requested ratio.
-            (root / "rigid/10_obj/sample_9/sample.npz").unlink()
-            with self.assertRaises(ValueError):
-                build_splits(root)
-
     def test_validation_weights_partial_batch_by_sample_count(self):
         model = MeanLoss()
         for batch_size in (1, 3, 4, 10):
