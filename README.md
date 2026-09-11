@@ -55,7 +55,7 @@ Download pretrained model weights:
 hf download yslan/physiformer model.safetensors config.json --local-dir checkpoints
 ```
 
-## Toy training example
+## 🧸 Toy training example
 
 The toy dataset contains 90 training and 10 validation trajectories. 
 Training configuration and dataset schema is detailed [here](data_toy/README.md). 
