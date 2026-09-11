@@ -83,7 +83,7 @@ The example scripts write predicted rollout samples into each input sample direc
 `sample_00/`, `sample_01/`, etc. Existing outputs are kept unless
 `OVERWRITE_FLAG=--overwrite` is set.
 
-Run in-distribution inference with the released SafeTensors weights:
+Run inference with the released SafeTensors weights:
 
 ```bash
 # in-distribution inference
@@ -120,8 +120,6 @@ Useful direct launcher flags:
 - `--max-samples`: limit how many input samples are run; `0` means all.
 - `--num-sampling-steps`: override denoising steps; useful for quick tests.
 - `--elastic OBJECT(S)`, `--rigid OBJECT(S)`: set OOD object materials by object-name substring.
-- `--overwrite` / `--no-overwrite`: replace or preserve existing outputs.
-- `--dry-run`: print selected samples and command without running the model.
 
 ## ✏️ Evaluation
 ```bash
