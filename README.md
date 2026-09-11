@@ -47,46 +47,22 @@ pip install -r requirements.txt
 ```
 Model defauts to PyTorch CUDA SDPA kernels. If unavailable, model uses math/chunked attention fallback.
 
-## Released weights
+## 🤗 Model Checkpoint
 
-Inference and fine-tuning accept full `.pt` checkpoints or a weights-only
-`model.safetensors` with its matching `config.json` in the same directory.
-The config supplies model, conditioning, normalization, and sampling settings.
-Run from the repository root to download both release files:
+Download pretrained model weights: 
 
 ```bash
 hf download yslan/physiformer model.safetensors config.json --local-dir checkpoints
 ```
 
-For a locally trained `.pt` checkpoint, use its path directly; it already contains
-its configuration and does not need a separate `config.json`. Inference commands
-for both formats are below. The demo scripts default to `checkpoints/model.safetensors`;
-set `CHECKPOINT` to use another file.
-
-SafeTensors contains one weight set, identified as EMA or raw in `config.json`;
-EMA-selection flags apply only to full `.pt` checkpoints. The loader verifies
-that the config matches the weights. Keep the config unchanged and use inference
-flags for runtime overrides. See [release instructions](docs/releasing.md) to
-export and verify a model.
-
 ## Toy training example
 
-The [toy dataset](data_toy/README.md) contains 90 training and 10 validation
-trajectories: `sample_0` from each category/object-count group is validation.
-The toy launcher is a template for training on your own data. It uses the full
-AltObj run's training recipe: **PhysiFormer-L, batch 8/GPU × 2 GPUs × accumulation
-4 = effective batch 64**, BF16, 10,000 virtual samples per epoch, 6,000 epochs,
-epoch-based cosine LR, and EMA validation every 10 epochs.
+The toy dataset contains 90 training and 10 validation trajectories. 
+Training configuration and dataset schema is detailed here [here](data_toy/README.md). 
 
 ```bash
 # Train the toy example with the full training recipe.
 bash scripts/train_toy_physiformer.sh
-
-# Preview settings and verify split paths without training or GPU use.
-bash scripts/train_toy_physiformer.sh --dry-run
-
-# One GPU; accumulation adjusts to keep the effective batch at 64.
-bash scripts/train_toy_physiformer.sh --gpus 1
 
 # Adapt the same launcher to another dataset with a train/val split.
 DATA_ROOT=/path/to/npzs SPLIT_FILE=/path/to/split.json \
@@ -94,32 +70,12 @@ NUM_VERTICES=0 MAX_NUM_OBJECTS=5 COND_OBJECT_MATERIAL=0 OUT_DIR=runs/my_dataset 
   bash scripts/train_toy_physiformer.sh
 ```
 
-The dataset settings are grouped in the [launcher](scripts/train_toy_physiformer.sh).
-The supplied toy data uses 49 frames, 356 vertex slots, up to 10 objects,
-rigid/elastic material conditioning, and normalization computed from its training
-split. See the [adaptation guide](data_toy/README.md#use-your-own-data) for the NPZ
-schema, split format, material labels, and fixed normalization overrides.
-
+To finetune from published model weights
 ```bash
 # Initialize weights for fine-tuning with a fresh optimizer and schedule.
 RESUME=none OUT_DIR=runs/toy_finetune \
   bash scripts/train_toy_physiformer.sh -- --init_ckpt checkpoints/model.safetensors
-
-# Resume model, optimizer, EMA, epoch, and step.
-RESUME=/path/to/checkpoint-last.pt bash scripts/train_toy_physiformer.sh
 ```
-
-Initialization starts a new optimizer and schedule; match `MODEL` and conditioning
-to the released model. The toy trainer computes normalization on its training data;
-use `--norm_mean` and `--norm_std` to retain the release normalization if desired.
-For full `.pt` initialization, EMA weights are preferred; `--no_init_ema` selects raw weights.
-Full training saves remain `.pt`; `RESUME` requires their optimizer and training state.
-`RESUME=auto` resumes the latest checkpoint in the output directory when present.
-The default model is `MODEL=PhysiFormer` (L); set `MODEL=PhysiFormer-B` for B.
-Their [architectures](src/physiformer/models/physiformer.py) use 24/12 layers,
-width 1024/768, and 16/12 attention heads respectively. Use checkpoints compatible
-with the selected model. See the [training guide](data_toy/README.md#training)
-for a short smoke test, Slurm, and other overrides.
 
 ## 🌟 Minimal Inference
 
@@ -130,25 +86,18 @@ The example scripts write predicted rollout samples into each input sample direc
 Run in-distribution inference with the released SafeTensors weights:
 
 ```bash
+# in-distribution inference
 CHECKPOINT=checkpoints/model.safetensors bash scripts/run_indistri_example.sh
+
+# OOD distribution inference
+CHECKPOINT=checkpoints/model.safetensors bash scripts/run_ood_example.sh
 ```
 
-Or use a full `.pt` checkpoint from your own training:
+Or use a `.pt` checkpoint from your own training:
 
 ```bash
 CHECKPOINT=/path/to/checkpoint-best.pt bash scripts/run_indistri_example.sh
-```
 
-This runs `indistri_examples/rigid` as all rigid materials and `indistri_examples/elastic` as all elastic materials.
-It writes inference-only renders as `inference.mp4`. Ground truth for each example rendered with blender are present. 
-
-Run OOD inference for generalisation to complex geometries:
-
-```bash
-# Released SafeTensors weights.
-CHECKPOINT=checkpoints/model.safetensors bash scripts/run_ood_example.sh
-
-# A local full training checkpoint.
 CHECKPOINT=/path/to/checkpoint-best.pt bash scripts/run_ood_example.sh
 ```
 
