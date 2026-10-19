@@ -2,7 +2,7 @@
 
 
 <h1 align="center">🫧PhysiFormer: Learning to Simulate Mechanics<br> in World Space</h1>
-
+<h2 align="center">NeurIPS 2026</h2>
 <p align="center">
   Yiming Chen, Yushi Lan, Andrea Vedaldi<br>
   Visual Geometry Group, University of Oxford
